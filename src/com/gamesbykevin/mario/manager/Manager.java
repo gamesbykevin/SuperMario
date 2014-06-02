@@ -5,6 +5,7 @@ import com.gamesbykevin.framework.util.*;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.*;
+import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.menu.CustomMenu;
 import com.gamesbykevin.mario.menu.CustomMenu.*;
 import com.gamesbykevin.mario.resources.*;
@@ -32,6 +33,9 @@ public final class Manager implements IManager
     //object representing our hero
     private Hero mario;
     
+    //the level
+    private Level level;
+    
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
      * @param engine Engine for our game that contains all objects needed
@@ -55,10 +59,15 @@ public final class Manager implements IManager
     @Override
     public void reset(final Engine engine) throws Exception
     {
+        this.level = new Level(0, -192);
+        this.level.createTiles(32, 24, engine.getResources().getGameImage(GameImages.Keys.LevelTiles));
+        
         this.mario = new Mario();
         this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
-        this.mario.setLocation(150, 150);
         this.mario.setDimensions();
+        
+        //set the start location of the hero
+        this.mario.setLocation(level.getX(2), level.getY(22) - mario.getHeight());
     }
     
     @Override
@@ -79,6 +88,20 @@ public final class Manager implements IManager
     @Override
     public void dispose()
     {
+        if (getWindow() != null)
+            setWindow(null);
+        
+        if (mario != null)
+        {
+            mario.dispose();
+            mario = null;
+        }
+        
+        if (level != null)
+        {
+            level.dispose();
+            level = null;
+        }
     }
     
     /**
@@ -94,6 +117,11 @@ public final class Manager implements IManager
         {
             mario.update(engine);
         }
+        
+        if (level != null)
+        {
+            level.update(engine);
+        }
     }
     
     /**
@@ -106,6 +134,11 @@ public final class Manager implements IManager
         if (mario != null)
         {
             mario.render(graphics);
+        }
+        
+        if (level != null)
+        {
+            level.render(graphics);
         }
     }
 }

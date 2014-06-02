@@ -21,7 +21,8 @@ public abstract class Entity extends Sprite implements Disposable
     }
     
     /**
-     * Add animation
+     * Add animation.<br>
+     * If no animations are set as the current, this animation will be set by default.
      * @param key The unique identifier to access this animation
      * @param count The number of animation frames
      * @param startX The starting x-coordinate of our first frame
@@ -31,7 +32,7 @@ public abstract class Entity extends Sprite implements Disposable
      * @param delay The time delay between each frame (nano-seconds)
      * @param loop Does the animation loop once finished
      */
-    protected final void addAnimation(final Object key, final int count, final int startX, final int startY, final int w, final int h, final long delay, final boolean loop)
+    public final void addAnimation(final Object key, final int count, final int startX, final int startY, final int w, final int h, final long delay, final boolean loop)
     {
         try
         {
@@ -52,6 +53,10 @@ public abstract class Entity extends Sprite implements Disposable
 
             //add animation to our sprite sheet
             super.getSpriteSheet().add(animation, key);
+            
+            //if the current animation isn't set, set this one by default
+            if (super.getSpriteSheet().getCurrent() == null)
+                super.getSpriteSheet().setCurrent(key);
         }
         catch (Exception e)
         {
@@ -93,7 +98,7 @@ public abstract class Entity extends Sprite implements Disposable
      * Update current animation
      * @param time The time to deduct from the current animation (nano-seconds)
      */
-    protected void update(final long time)
+    public void update(final long time)
     {
         try
         {
@@ -110,7 +115,7 @@ public abstract class Entity extends Sprite implements Disposable
      * @param object The animation we are looking for
      * @return true if this is the current animation set, false otherwise
      */
-    protected final boolean isCurrentAnimation(final Object object)
+    public final boolean isCurrentAnimation(final Object object)
     {
         return (super.getSpriteSheet().getCurrent() == object);
     }

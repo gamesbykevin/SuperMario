@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <images>
     <image id="MarioSpriteSheet">resources/images/game/MarioSpriteSheet.png</image>
+    <image id="LevelTiles">resources/images/game/LevelTiles.png</image>
 </images>
