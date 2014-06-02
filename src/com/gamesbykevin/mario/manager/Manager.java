@@ -4,6 +4,7 @@ import com.gamesbykevin.framework.menu.Menu;
 import com.gamesbykevin.framework.util.*;
 
 import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.heroes.*;
 import com.gamesbykevin.mario.menu.CustomMenu;
 import com.gamesbykevin.mario.menu.CustomMenu.*;
 import com.gamesbykevin.mario.resources.*;
@@ -28,6 +29,9 @@ public final class Manager implements IManager
     //the area where gameplay will occur
     private Rectangle window;
     
+    //object representing our hero
+    private Hero mario;
+    
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
      * @param engine Engine for our game that contains all objects needed
@@ -39,7 +43,7 @@ public final class Manager implements IManager
         setWindow(engine.getMain().getScreen());
 
         //get the menu object
-        final Menu menu = engine.getMenu();
+        //final Menu menu = engine.getMenu();
 
         //get index of option selected
         //menu.getOptionSelectionIndex(CustomMenu.LayerKey.Options, CustomMenu.OptionKey.Lives)
@@ -51,7 +55,10 @@ public final class Manager implements IManager
     @Override
     public void reset(final Engine engine) throws Exception
     {
-        
+        this.mario = new Mario();
+        this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
+        this.mario.setLocation(150, 150);
+        this.mario.setDimensions();
     }
     
     @Override
@@ -83,6 +90,10 @@ public final class Manager implements IManager
     @Override
     public void update(final Engine engine) throws Exception
     {
+        if (mario != null)
+        {
+            mario.update(engine);
+        }
     }
     
     /**
@@ -92,5 +103,9 @@ public final class Manager implements IManager
     @Override
     public void render(final Graphics graphics)
     {
+        if (mario != null)
+        {
+            mario.render(graphics);
+        }
     }
 }
