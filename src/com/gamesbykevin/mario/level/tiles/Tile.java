@@ -13,8 +13,8 @@ public final class Tile extends Entity implements Disposable
     //will collision with this tile cause damage
     private boolean damage = false;
     
-    //do we check this tile for collision
-    private boolean solid = false;
+    //do we check for collision
+    private boolean solid;
     
     public static final int WIDTH = 16;
     public static final int HEIGHT = 16;

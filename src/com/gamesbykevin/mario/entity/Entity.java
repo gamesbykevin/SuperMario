@@ -20,6 +20,66 @@ public abstract class Entity extends Sprite implements Disposable
         super.createSpriteSheet();
     }
     
+    protected double getNorthX()
+    {
+        return (getX() + (getWidth() / 2));
+    }
+    
+    protected double getNorthY()
+    {
+        return (getY());
+    }
+    
+    protected double getSouthX()
+    {
+        return (getX() + (getWidth() / 2));
+    }
+    
+    protected double getSouthY()
+    {
+        return (getY() + getHeight());
+    }
+    
+    protected double getWestX()
+    {
+        return (getX());
+    }
+    
+    protected double getWestY()
+    {
+        return (getY() + (getHeight() / 2));
+    }
+    
+    protected double getNorthWestX()
+    {
+        return (getX());
+    }
+    
+    protected double getNorthWestY()
+    {
+        return (getY() + (getHeight() / 4));
+    }
+    
+    protected double getEastX()
+    {
+        return (getX() + getWidth());
+    }
+    
+    protected double getEastY()
+    {
+        return (getY() + (getHeight() / 2));
+    }
+    
+    protected double getNorthEastX()
+    {
+        return (getX() + getWidth());
+    }
+    
+    protected double getNorthEastY()
+    {
+        return (getY() + (getHeight() / 4));
+    }
+    
     /**
      * Add animation.<br>
      * If no animations are set as the current, this animation will be set by default.
@@ -65,6 +125,14 @@ public abstract class Entity extends Sprite implements Disposable
     }
     
     /**
+     * Reset the current animation
+     */
+    public void resetAnimation()
+    {
+        super.getSpriteSheet().reset();
+    }
+    
+    /**
      * Do we have the specified animation
      * @param object The animation we are looking for
      * @return true if animation is found, false otherwise
@@ -77,8 +145,9 @@ public abstract class Entity extends Sprite implements Disposable
     /**
      * Set the current animation and reset it to start
      * @param key The animation we want to set
+     * @param reset Do we reset the animation
      */
-    protected void setAnimation(final Object key)
+    public void setAnimation(final Object key, final boolean reset)
     {
         try
         {
@@ -86,7 +155,9 @@ public abstract class Entity extends Sprite implements Disposable
                 throw new Exception("Animation does not exist: " + key.toString());
             
             super.getSpriteSheet().setCurrent(key);
-            super.getSpriteSheet().reset();
+            
+            if (reset)
+                super.getSpriteSheet().reset();
         }
         catch (Exception e)
         {
@@ -108,6 +179,15 @@ public abstract class Entity extends Sprite implements Disposable
         {
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * Get the current animation key
+     * @return The animation key
+     */
+    public Object getCurrentAnimation()
+    {
+        return super.getSpriteSheet().getCurrent();
     }
     
     /**

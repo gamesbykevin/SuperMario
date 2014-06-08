@@ -9,28 +9,48 @@ import com.gamesbykevin.mario.shared.IElement;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.util.Random;
 
 public final class Level implements Disposable, IElement
 {
     //list of tiles in the level
     private Tiles tiles;
     
-    //the area where the level will be rendered to the user
+    //used so we can determine what tiles need to be rendered
     private Rectangle boundary;
     
-    //the location in the northwest corner where the level will start
-    private final int startX;
-    private final int startY;
+    //variables used for scrolling the tiles
+    private double scrollX = 0;
+    
+    //the location where the level will start to be drawn on screen (north-west corner)
+    public static final int LEVEL_START_X = 0;
+    public static final int LEVEL_START_Y = 0;
+    
+    //how many tiles can appear on one screen
+    public static final int LEVEL_COLUMNS_PER_SCREEN = 16;
+    public static final int LEVEL_ROWS_PER_SCREEN = 12;
+    
+    //our background
+    private Background background;
     
     /**
      * Create a new level
-     * @param startX The x-coordinate where the level will start.
-     * @param startY The y-coordinate where the level will start.
      */
-    public Level(final int startX, final int startY)
+    public Level()
     {
-        this.startX = startX;
-        this.startY = startY;
+        
+    }
+    
+    /**
+     * Set the scroll speed
+     * @param scrollX The speed at which to move the x-coordinate 
+     */
+    public void setScrollX(final double scrollX)
+    {
+        this.scrollX = scrollX;
+        
+        //also set speed of background
+        background.setVelocityX(scrollX);
     }
     
     /**
@@ -40,7 +60,7 @@ public final class Level implements Disposable, IElement
      */
     public int getX(final int column)
     {
-        return (startX + (column * Tile.WIDTH));
+        return (LEVEL_START_X + (column * Tile.WIDTH));
     }
     
     /**
@@ -50,16 +70,27 @@ public final class Level implements Disposable, IElement
      */
     public int getY(final int row)
     {
-        return (startY + (row * Tile.HEIGHT));
+        return (LEVEL_START_Y + (row * Tile.HEIGHT));
     }
     
-    public void createTiles(final int columns, final int rows, final Image image)
+    public void createBackground(final Image image, final Random random)
+    {
+        //create a random background for now
+        this.background = new Background(image, Background.Type.values()[random.nextInt(Background.Type.values().length)]);
+    }
+    
+    public void createTiles(final int columns, final Image image, final Random random)
     {
         //crete new tile container
-        this.tiles = new Tiles(columns, rows, image);
+        this.tiles = new Tiles(columns, Level.LEVEL_ROWS_PER_SCREEN, image);
         
         //populate the tiles
-        this.tiles.populate(startX, startY, this);
+        this.tiles.populate(this, random);
+    }
+    
+    public Tiles getTiles()
+    {
+        return this.tiles;
     }
     
     @Override
@@ -82,16 +113,19 @@ public final class Level implements Disposable, IElement
             boundary = engine.getManager().getWindow();
         
         //update tiles
-        tiles.update(engine.getMain().getTime());
+        tiles.update(engine.getMain().getTime(), scrollX);
+        
+        //update location
+        background.update(boundary.x, boundary.x + boundary.width);
     }
     
     @Override
     public void render(final Graphics graphics)
     {
-        if (boundary != null)
-        {
-            //draw the tiles
-            tiles.render(graphics, boundary);
-        }
+        //draw the background first
+        background.render(graphics);
+        
+        //then draw the tiles
+        tiles.render(graphics, boundary);
     }
 }

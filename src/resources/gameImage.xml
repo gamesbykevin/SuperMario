@@ -2,4 +2,5 @@
 <images>
     <image id="MarioSpriteSheet">resources/images/game/MarioSpriteSheet.png</image>
     <image id="LevelTiles">resources/images/game/LevelTiles.png</image>
+    <image id="LevelBackgrounds">resources/images/game/LevelBackgrounds.png</image>
 </images>

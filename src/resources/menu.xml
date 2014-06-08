@@ -28,8 +28,8 @@
         <pause>true</pause>
         <duration>10000</duration>
         <image>resources/images/menu/background.jpg</image>
-        <optionContainerRatio>0.80</optionContainerRatio>
-        <title>Super Mario</title>
+        <optionContainerRatio>0.85</optionContainerRatio>
+        <title>Mario Bros</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
         <options name="Start Game" next="GameStart" id="GameStart"></options>
@@ -44,7 +44,7 @@
         <pause>true</pause>
         <duration>10000</duration>
         <image>resources/images/menu/background.jpg</image>
-        <optionContainerRatio>0.80</optionContainerRatio>
+        <optionContainerRatio>0.85</optionContainerRatio>
         <title>Options</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
@@ -95,7 +95,7 @@
         <pause>true</pause>
         <duration></duration>
         <image></image>
-        <optionContainerRatio>0.80</optionContainerRatio>
+        <optionContainerRatio>0.85</optionContainerRatio>
         <title>Options</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
@@ -117,7 +117,7 @@
         <pause>true</pause>
         <duration></duration>
         <image></image>
-        <optionContainerRatio>0.80</optionContainerRatio>
+        <optionContainerRatio>0.85</optionContainerRatio>
         <title>Start Over?</title>
         <options name="Yes" next="CreateNewGame" id="CreateNewGame"></options>
         <options name="No" next="OptionsInGame" id="OptionsInGame"></options>
@@ -130,7 +130,7 @@
         <pause>true</pause>
         <duration></duration>
         <image></image>
-        <optionContainerRatio>0.80</optionContainerRatio>
+        <optionContainerRatio>0.85</optionContainerRatio>
         <title>Leave?</title>
         <options name="Yes" next="ExitGameConfirmed" id="MainTitle"></options>
         <options name="No" next="OptionsInGame" id="OptionsInGame"></options>

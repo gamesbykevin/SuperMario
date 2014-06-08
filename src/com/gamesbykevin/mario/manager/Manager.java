@@ -5,12 +5,14 @@ import com.gamesbykevin.framework.util.*;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.*;
+import com.gamesbykevin.mario.input.Input;
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.menu.CustomMenu;
 import com.gamesbykevin.mario.menu.CustomMenu.*;
 import com.gamesbykevin.mario.resources.*;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -36,6 +38,12 @@ public final class Manager implements IManager
     //the level
     private Level level;
     
+    //here we will manage the keyboard input in the game
+    private Input input;
+    
+    //the game font
+    private Font font;
+    
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
      * @param engine Engine for our game that contains all objects needed
@@ -46,6 +54,8 @@ public final class Manager implements IManager
         //set the game window where game play will occur
         setWindow(engine.getMain().getScreen());
 
+        this.font = engine.getResources().getFont(GameFont.Keys.GameFont);
+        
         //get the menu object
         //final Menu menu = engine.getMenu();
 
@@ -59,15 +69,32 @@ public final class Manager implements IManager
     @Override
     public void reset(final Engine engine) throws Exception
     {
-        this.level = new Level(0, -192);
-        this.level.createTiles(32, 24, engine.getResources().getGameImage(GameImages.Keys.LevelTiles));
+        //create new level starting at specified location
+        this.level = new Level();
+        
+        //create tiles of specified size
+        this.level.createTiles(Level.LEVEL_COLUMNS_PER_SCREEN * 8, engine.getResources().getGameImage(GameImages.Keys.LevelTiles), engine.getRandom());
+        this.level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
         
         this.mario = new Mario();
         this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
         this.mario.setDimensions();
         
         //set the start location of the hero
-        this.mario.setLocation(level.getX(2), level.getY(22) - mario.getHeight());
+        this.mario.setLocation(level.getX(4), level.getY(level.getTiles().getFloorRow()) - mario.getHeight());
+        
+        //create new object to manage input
+        this.input = new Input();
+    }
+    
+    public Hero getMario()
+    {
+        return this.mario;
+    }
+    
+    public Level getLevel()
+    {
+        return this.level;
     }
     
     @Override
@@ -89,7 +116,7 @@ public final class Manager implements IManager
     public void dispose()
     {
         if (getWindow() != null)
-            setWindow(null);
+            this.window = null;
         
         if (mario != null)
         {
@@ -113,6 +140,11 @@ public final class Manager implements IManager
     @Override
     public void update(final Engine engine) throws Exception
     {
+        if (input != null)
+        {
+            input.update(engine);
+        }
+        
         if (mario != null)
         {
             mario.update(engine);
@@ -131,14 +163,17 @@ public final class Manager implements IManager
     @Override
     public void render(final Graphics graphics)
     {
-        if (mario != null)
-        {
-            mario.render(graphics);
-        }
+        //set the font
+        graphics.setFont(font);
         
         if (level != null)
         {
             level.render(graphics);
+        }
+        
+        if (mario != null)
+        {
+            mario.render(graphics);
         }
     }
 }

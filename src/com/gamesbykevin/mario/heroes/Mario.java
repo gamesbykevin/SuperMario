@@ -26,13 +26,10 @@ public final class Mario extends Hero
         super.addAnimation(State.SmallWalk, 2, 32, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, true);
         
         //small mario running, will be same as walking but move between frames faster
-        super.addAnimation(State.SmallRun, 2, 32, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, (DEFAULT_DELAY / 3), true);
+        super.addAnimation(State.SmallRun, 2, 32, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY / 3, true);
         
         //small mario jumping
-        super.addAnimation(State.SmallJump, 2, 64, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
-        
-        //small mario turning directions
-        super.addAnimation(State.SmallChangeDirection, 1, 96, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        super.addAnimation(State.SmallJump, 2, 64, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
         //small mario dead
         super.addAnimation(State.SmallDeath, 1, 112, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
@@ -48,13 +45,10 @@ public final class Mario extends Hero
         super.addAnimation(State.BigWalk, 2, 32, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, true);
         
         //big mario running, will be same as walking but move between frames faster
-        super.addAnimation(State.BigRun, 2, 32, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, (DEFAULT_DELAY / 3), true);
+        super.addAnimation(State.BigRun, 2, 32, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 3, true);
         
         //big mario jumping
-        super.addAnimation(State.BigJump, 2, 64, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
-        
-        //big mario turning directions
-        super.addAnimation(State.BigChangeDirection, 1, 96, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        super.addAnimation(State.BigJump, 2, 64, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
         //big mario ducking
         super.addAnimation(State.BigDuck, 1, 112, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
@@ -70,26 +64,23 @@ public final class Mario extends Hero
         super.addAnimation(State.FireWalk, 2, 32, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, true);
         
         //fire mario running, will be same as walking but move between frames faster
-        super.addAnimation(State.FireRun, 2, 32, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, (DEFAULT_DELAY / 3), true);
+        super.addAnimation(State.FireRun, 2, 32, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 3, true);
         
         //fire mario jumping
-        super.addAnimation(State.FireJump, 2, 64, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
-        
-        //fire mario turning directions
-        super.addAnimation(State.FireChangeDirection, 1, 96, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        super.addAnimation(State.FireJump, 2, 64, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
         //fire mario ducking
         super.addAnimation(State.FireDuck, 1, 112, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
         
         //fire mario attacking
-        super.addAnimation(State.FireAttack, 1, 128, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, (DEFAULT_DELAY * 2), false);
+        super.addAnimation(State.FireAttack, 1, 128, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);
         
         
         //fireball
         super.addAnimation(State.Fireball, 4, 0, 80, FIREBALL_WIDTH, FIREBALL_HEIGHT, DEFAULT_DELAY, true);
         
         
-        //set default animation to small idle
-        super.setAnimation(State.SmallIdle);
+        //set default animation
+        super.setAnimation(getDefaultAnimation(), true);
     }
 }

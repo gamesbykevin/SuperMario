@@ -75,7 +75,7 @@ public final class CustomMenu extends Menu implements IElement
     private FontManager fonts;
     
     //the default font size
-    private static final float DEFAULT_FONT_SIZE = 24;
+    private static final float DEFAULT_FONT_SIZE = 20;
     
     /**
      * Unique id's used to access the resources and must match the id in the xml file
@@ -230,8 +230,8 @@ public final class CustomMenu extends Menu implements IElement
             //if confirming exit from the game, stop sound
             if (super.hasCurrent(LayerKey.ExitGameConfirmed))
             {
-                //stop all sound
-                engine.getResources().stopAllSound();
+                //recycle game related objects
+                engine.setReset();
                 
                 //go to specified layer
                 super.setLayer(LayerKey.MainTitle);
@@ -264,12 +264,10 @@ public final class CustomMenu extends Menu implements IElement
     @Override
     public void render(final Graphics graphics)
     {
-        if (graphics.getFont() != fonts.get(FontKey.MenuFont))
-        {
-            //set menu font
-            graphics.setFont(fonts.get(FontKey.MenuFont).deriveFont(18f));
-        }
+        //set menu font
+        graphics.setFont(fonts.get(FontKey.MenuFont));
         
+        //draw menu
         super.render(graphics);
     }
     

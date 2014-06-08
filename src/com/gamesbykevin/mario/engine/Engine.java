@@ -312,7 +312,8 @@ public final class Engine implements KeyListener, MouseMotionListener, MouseList
     @Override
     public void keyTyped(KeyEvent e)
     {
-        keyboard.addKeyTyped(e.getKeyChar());
+        //do nothing here for now
+        //keyboard.addKeyTyped(e.getKeyChar());
     }
     
     @Override
