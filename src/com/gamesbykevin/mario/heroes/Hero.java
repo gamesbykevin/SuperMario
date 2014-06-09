@@ -3,6 +3,7 @@ package com.gamesbykevin.mario.heroes;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.level.Level;
+import com.gamesbykevin.mario.level.powerups.PowerUps;
 import com.gamesbykevin.mario.level.tiles.Tile;
 import com.gamesbykevin.mario.shared.IElement;
 
@@ -235,11 +236,54 @@ public abstract class Hero extends Character implements IElement
             Tile south      = checkCollisionSouth(engine.getManager().getLevel().getTiles());
         }
         
+        //manage power up collision
+        managePowerUp(engine.getManager().getLevel().getPowerUpCollision(this));
+        
         //make sure correct animation is set
         checkAnimation();
         
         //check if we are to scroll the level
         checkScroll(engine.getManager().getLevel(), engine.getManager().getWindow());
+    }
+        
+    private void managePowerUp(final PowerUps.Type type)
+    {
+        try
+        {
+            if (type == null)
+                return;
+
+            switch (type)
+            {
+                case Mushroom:
+                    setBig(true);
+                    setAnimation(getDefaultAnimation(), false);
+                    break;
+                    
+                case Flower:
+                    setBig(true);
+                    setFire(true);
+                    setAnimation(getDefaultAnimation(), false);
+                    break;
+                    
+                case Star:
+                    System.out.println("Collected: " + type.toString());
+                    setAnimation(getDefaultAnimation(), false);
+                    break;
+                    
+                case Coin:
+                    System.out.println("Collected: " + type.toString());
+                    break;
+                    
+                case CoinSwitch:
+                    System.out.println("Collected: " + type.toString());
+                    break;
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
     
     /**

@@ -3,6 +3,7 @@ package com.gamesbykevin.mario.level;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.level.tiles.*;
 import com.gamesbykevin.mario.level.powerups.PowerUps;
 import com.gamesbykevin.mario.shared.IElement;
@@ -75,6 +76,16 @@ public final class Level implements Disposable, IElement
     public int getY(final int row)
     {
         return (LEVEL_START_Y + (row * Tile.HEIGHT));
+    }
+    
+    /**
+     * Get the type of power up found to intersect with the entity and remove from power up list
+     * @param entity The object we want to check for collision with power up
+     * @return Type of power up found, if none found null is returned
+     */
+    public PowerUps.Type getPowerUpCollision(final Entity entity)
+    {
+        return powerUps.getCollision(entity);
     }
     
     private void createPowerUps(final Image image)

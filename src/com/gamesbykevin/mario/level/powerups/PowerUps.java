@@ -3,9 +3,8 @@ package com.gamesbykevin.mario.level.powerups;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
-import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
 import java.awt.Image;
@@ -35,6 +34,35 @@ public final class PowerUps implements Disposable
         
         //create new list
         this.powerUps = new ArrayList<>();
+    }
+    
+    /**
+     * Get the type of power up found, and remove from list
+     * @param entity Object we want to check for collision
+     * @return The type of power up found, if none found null is returned
+     */
+    public Type getCollision(final Entity entity)
+    {
+        for (int i = 0; i < powerUps.size(); i++)
+        {
+            //get the current power up
+            PowerUp powerUp = powerUps.get(i);
+            
+            //check for collision
+            if (entity.getRectangle().intersects(powerUp.getRectangle()))
+            {
+                //get the type
+                Type type = powerUp.getType();
+                
+                //remove from list
+                powerUps.remove(i);
+                
+                //return our result
+                return type;
+            }
+        }
+        
+        return null;
     }
     
     public void add(final Type type, final int x, final int y)
