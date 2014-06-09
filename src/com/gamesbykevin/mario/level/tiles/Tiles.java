@@ -5,6 +5,7 @@ import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.LevelCreatorHelper;
+import com.gamesbykevin.mario.level.powerups.PowerUps;
 
 import java.awt.Graphics;
 import java.awt.Image;
@@ -302,7 +303,7 @@ public final class Tiles implements Disposable
                     
                 case QuestionBlock:
                     tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(0), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(250L), true);
+                    tile.addAnimation(type, 4, getStartX(0), getStartY(0), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
                     tile.setDamage(false);
                     tile.setSolid(true);
                     tile.setLocation(x, y);
@@ -320,7 +321,7 @@ public final class Tiles implements Disposable
                     
                 case RotatingGear:
                     tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(2), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(250L), true);
+                    tile.addAnimation(type, 4, getStartX(0), getStartY(2), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(75L), true);
                     tile.setDamage(true);
                     tile.setSolid(true);
                     tile.setLocation(x, y);
@@ -732,22 +733,18 @@ public final class Tiles implements Disposable
     /**
      * Here we will begin to add tiles to the level for creation
      * @param level The current level object used to locate x,y placement/render coordinates
+     * @param random Object used to make random decisions
      */
-    public void populate(final Level level, final Random random)
+    public void populate(final Level level, final PowerUps powerUps, final Random random)
     {
-        /*
-         * 1. First we will pass through the level and place the floor.<br>
-         * 2. Then we will place some block obstacles in the way.<br>
-         * 3. Then we will place some bonus blocks or breakable bricks
-         * 4. Then we will place some background images
-         * 5. Then we will place some clouds in the background
-         */
-        
         //create the floor first
         LevelCreatorHelper.createFloor(level, this, random);
         
         //now place some obstacles
-        LevelCreatorHelper.createObstacles(level, this, random);
+        LevelCreatorHelper.createCollisionObstacles(level, this, random);
+        
+        //here we will place breakable bricks and power blocks
+        LevelCreatorHelper.createBlocks(level, this, random);
         
         //now lets place some platforms
         LevelCreatorHelper.createPlatforms(level, this, random);
@@ -757,6 +754,12 @@ public final class Tiles implements Disposable
         
         //now lets place some clouds
         LevelCreatorHelper.createClouds(level, this, random);
+        
+        //now lets place some deadly obstacles
+        LevelCreatorHelper.createDeadlyObstacles(level, this, random);
+        
+        //place coins in the level
+        LevelCreatorHelper.placeCoins(level, this, powerUps, random);
         
         try
         {

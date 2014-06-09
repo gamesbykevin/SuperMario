@@ -4,6 +4,7 @@ import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.level.tiles.*;
+import com.gamesbykevin.mario.level.powerups.PowerUps;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
@@ -32,6 +33,9 @@ public final class Level implements Disposable, IElement
     
     //our background
     private Background background;
+    
+    //collection of power ups
+    private PowerUps powerUps;
     
     /**
      * Create a new level
@@ -73,19 +77,27 @@ public final class Level implements Disposable, IElement
         return (LEVEL_START_Y + (row * Tile.HEIGHT));
     }
     
+    private void createPowerUps(final Image image)
+    {
+        this.powerUps = new PowerUps(image);
+    }
+    
     public void createBackground(final Image image, final Random random)
     {
         //create a random background for now
         this.background = new Background(image, Background.Type.values()[random.nextInt(Background.Type.values().length)]);
     }
     
-    public void createTiles(final int columns, final Image image, final Random random)
+    public void createTiles(final int columns, final Image image, final Image powerUpImg, final Random random)
     {
+        //create our power ups first
+        createPowerUps(powerUpImg);
+        
         //crete new tile container
         this.tiles = new Tiles(columns, Level.LEVEL_ROWS_PER_SCREEN, image);
         
         //populate the tiles
-        this.tiles.populate(this, random);
+        this.tiles.populate(this, powerUps, random);
     }
     
     public Tiles getTiles()
@@ -115,6 +127,9 @@ public final class Level implements Disposable, IElement
         //update tiles
         tiles.update(engine.getMain().getTime(), scrollX);
         
+        //update power ups
+        powerUps.update(engine.getMain().getTime(), scrollX);
+        
         //update location
         background.update(boundary.x, boundary.x + boundary.width);
     }
@@ -124,6 +139,9 @@ public final class Level implements Disposable, IElement
     {
         //draw the background first
         background.render(graphics);
+        
+        //draw the power ups
+        powerUps.render(graphics);
         
         //then draw the tiles
         tiles.render(graphics, boundary);

@@ -222,13 +222,18 @@ public abstract class Hero extends Character implements IElement
         //apply gravity
         super.applyGravity(engine.getManager().getLevel().getTiles());
         
-        //check for collision
-        Tile w = checkCollisionWest(engine.getManager().getLevel().getTiles());
-        Tile nw = checkCollisionNorthWest(engine.getManager().getLevel().getTiles());
-        Tile e = checkCollisionEast(engine.getManager().getLevel().getTiles());
-        Tile ne = checkCollisionNorthEast(engine.getManager().getLevel().getTiles());
+        //check for collision to the north first
         Tile n = checkCollisionNorth(engine.getManager().getLevel().getTiles());
-        Tile s = checkCollisionSouth(engine.getManager().getLevel().getTiles());
+        
+        //no collision found north, now check the rest
+        if (n == null)
+        {
+            Tile west       = checkCollisionWest(engine.getManager().getLevel().getTiles());
+            Tile northWest  = checkCollisionNorthWest(engine.getManager().getLevel().getTiles());
+            Tile east       = checkCollisionEast(engine.getManager().getLevel().getTiles());
+            Tile northEast  = checkCollisionNorthEast(engine.getManager().getLevel().getTiles());
+            Tile south      = checkCollisionSouth(engine.getManager().getLevel().getTiles());
+        }
         
         //make sure correct animation is set
         checkAnimation();

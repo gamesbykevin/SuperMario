@@ -1,5 +1,6 @@
 package com.gamesbykevin.mario.level;
 
+import com.gamesbykevin.mario.level.powerups.PowerUps;
 import com.gamesbykevin.mario.level.tiles.*;
 
 import java.util.ArrayList;
@@ -9,10 +10,23 @@ import java.util.Random;
 public class LevelCreatorHelper 
 {
     //change these to increase/decrease the probability of being added to the level
-    private static final int ADD_CLOUDS_PROBABILITY = 6;
+    private static final int ADD_CLOUDS_PROBABILITY = 9;
     private static final int ADD_BACKGROUNDS_PROBABILITY = 3;
-    private static final int ADD_OBSTACLES_PROBABILITY = 3;
+    private static final int ADD_COLLISION_OBSTACLES_PROBABILITY = 3;
+    private static final int ADD_DEADLY_OBSTACLES_PROBABILITY = 7;
     private static final int ADD_PLATFORMS_PROBABILITY = 3;
+    private static final int ADD_BLOCKS_PROBABILITY = 6;
+    private static final int ADD_COINS_PROBABILITY = 7;
+    
+    /**
+     * How many blocks can be added at once
+     */
+    private static final int MAX_BLOCKS_ADD = 6;
+    
+    /**
+     * How much space is needed between the blocks and other obstacles
+     */
+    private static final int MIN_BLOCKS_SPACE = 2;
     
     /**
      * How many tiles the average floor is
@@ -20,9 +34,14 @@ public class LevelCreatorHelper
     private static final int MAX_FLOOR_LENGTH = 15;
     
     /**
-     * The height of the floor can vary
+     * Give each platform space between one another
      */
-    private static final int MAX_FLOOR_HEIGHT_DIFFERENCE = 3;
+    private static final int MIN_PLATFORM_SPACE = 3;
+    
+    /**
+     * Give each collision obstacle space between one another
+     */
+    private static final int MIN_COLLISION_OBSTACLE_SPACE = 2;
     
     /**
      * The height of the platforms can vary
@@ -197,6 +216,41 @@ public class LevelCreatorHelper
         return options.get(random.nextInt(options.size()));
     }
     
+    private static Tiles.Type getRandomDeadlyObstacleCeiling(final Random random)
+    {
+        List<Tiles.Type> options = new ArrayList<>();
+        
+        options.add(Tiles.Type.SpikesDown1);
+        options.add(Tiles.Type.SpikesDown2);
+        
+        //choose random tile type from list
+        return options.get(random.nextInt(options.size()));
+    }
+    
+    private static Tiles.Type getRandomDeadlyObstacle(final Random random)
+    {
+        List<Tiles.Type> options = new ArrayList<>();
+        
+        options.add(Tiles.Type.RotatingGear);
+        options.add(Tiles.Type.SpikesUp1);
+        options.add(Tiles.Type.SpikesUp2);
+        
+        //choose random tile type from list
+        return options.get(random.nextInt(options.size()));
+    }
+    
+    private static Tiles.Type getRandomDeadlyGapObstacle(final Random random)
+    {
+        List<Tiles.Type> options = new ArrayList<>();
+        
+        options.add(Tiles.Type.Lava);
+        options.add(Tiles.Type.Water1);
+        options.add(Tiles.Type.Water2);
+        
+        //choose random tile type from list
+        return options.get(random.nextInt(options.size()));
+    }
+    
     private static Tiles.Type getRandomBackground(final Random random)
     {
         List<Tiles.Type> options = new ArrayList<>();
@@ -217,17 +271,6 @@ public class LevelCreatorHelper
         options.add(Tiles.Type.BiggerBlock2);
         options.add(Tiles.Type.BiggerBlock3);
         options.add(Tiles.Type.BiggerBlock4);
-        
-        /*
-        options.add(Tiles.Type.HorizontalPipe1);
-        options.add(Tiles.Type.HorizontalPipe2);
-        options.add(Tiles.Type.HorizontalPipe3);
-        options.add(Tiles.Type.HorizontalPipe4);
-        options.add(Tiles.Type.HorizontalPipe5);
-        options.add(Tiles.Type.HorizontalPipe6);
-        options.add(Tiles.Type.HorizontalPipe7);
-        options.add(Tiles.Type.HorizontalPipe8);
-        */
         
         options.add(Tiles.Type.VerticalPipe1);
         options.add(Tiles.Type.VerticalPipe2);
@@ -262,24 +305,33 @@ public class LevelCreatorHelper
         //fill floor first
         for (int col = 0; col < tiles.getColumns(); col++)
         {
-            //locate x,y coordinates
-            int x = level.getX(col);
-            int y = level.getY(tiles.getFloorRow());
+            //locate x,y coordinates of the tiles
+            int x;
+            int y;
             
             //if the first screen or last add all floors by default
             if (tiles.isSafeZone(col))
             {
                 if (col == 0 || col == tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN)
                 {
-                    tiles.add(west, col, tiles.getFloorRow(), x, y);
-                }
-                else if (col == Level.LEVEL_COLUMNS_PER_SCREEN - 1 || col == tiles.getColumns() - 1)
-                {
-                    tiles.add(east, col, tiles.getFloorRow(), x, y);
-                }
-                else
-                {
-                    tiles.add(type, col, tiles.getFloorRow(), x, y);
+                    for (int i = 0; i < Level.LEVEL_COLUMNS_PER_SCREEN; i++)
+                    {
+                        x = level.getX(col + i);
+                        y = level.getY(tiles.getFloorRow());
+                        
+                        if (i == 0)
+                        {
+                            tiles.add(west, col + i, tiles.getFloorRow(), x, y);
+                        }
+                        else if (i == Level.LEVEL_COLUMNS_PER_SCREEN - 1)
+                        {
+                            tiles.add(east, col + i, tiles.getFloorRow(), x, y);
+                        }
+                        else
+                        {
+                            tiles.add(type, col + i, tiles.getFloorRow(), x, y);
+                        }
+                    }
                 }
             }
             else
@@ -288,20 +340,20 @@ public class LevelCreatorHelper
                 if (random.nextBoolean() && !createdGap)
                 {
                     //choose random gap size
-                    final int gapCount = random.nextInt(MAX_GAP_LENGTH) + 1;
+                    int gapSize = random.nextInt(MAX_GAP_LENGTH);
                     
+                    //flag that a gap was created
                     createdGap = true;
+
+                    //if the gap count overlaps the safe zone
+                    if (tiles.isSafeZone(col + gapSize))
+                    {
+                        //adjust the gap count
+                        gapSize = (tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
+                    }
                     
-                    //if the gap count overlaps the last screen, we want the last screen to be all floor
-                    if (col + gapCount >= tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN)
-                    {
-                        col = tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN;
-                    }
-                    else
-                    {
-                        //skip to the column after the gap count
-                        col += gapCount;
-                    }
+                    //skip to the column after the gap
+                    col += gapSize;
                 }
                 else
                 {
@@ -312,10 +364,10 @@ public class LevelCreatorHelper
                     int floorLength = random.nextInt(MAX_FLOOR_LENGTH) + 2;
                     
                     //make sure floor doesn't go into last screen
-                    if (col + floorLength >= tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN)
+                    if (tiles.isSafeZone(col + floorLength))
                     {
                         //adjust floor length
-                        floorLength = (tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - col;
+                        floorLength = (tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
                     }
                     
                     //add the tiles to the floor
@@ -347,6 +399,90 @@ public class LevelCreatorHelper
                 }
             }
         }
+        
+        //if true we will fill the gaps the gaps empty
+        if (random.nextBoolean())
+        {
+            //get random tile of type
+            Tiles.Type tmp = getRandomDeadlyGapObstacle(random);
+            
+            //now go in and determine if the gaps should be holes or have deadly obstacles
+            for (int col = 0; col < tiles.getColumns(); col++)
+            {
+                //we only want the gaps
+                if (tiles.hasTile(col, tiles.getFloorRow() + 1))
+                    continue;
+
+                //how big is the gap
+                int gapSize = 0;
+
+                for (int i = col; i < tiles.getColumns(); i++)
+                {
+                    //if there is a tile here then calculate the gap size
+                    if (tiles.hasTile(i, tiles.getFloorRow() + 1))
+                    {
+                        gapSize = (i - col);
+                        break;
+                    }
+                }
+
+                //fill in gap
+                for (int i = 0; i < gapSize; i++)
+                {
+                    //locate x,y coordinates for each tile
+                    int x = level.getX(col + i);
+                    int y = level.getY(tiles.getFloorRow() + 1);
+
+                    //add deadly gap obstacle
+                    tiles.add(tmp, col + i, tiles.getFloorRow() + 1, x, y);
+                }
+
+                //skip to the next gap
+                col += gapSize;
+            }
+        }
+    }
+    
+    /**
+     * Now place some deadly obstacles
+     * 
+     * @param level Our level object used to determine the (x,y) coordinates
+     * @param tiles The object that contains all of the level's tiles
+     * @param random Object used to make random decisions
+     */
+    public static void createDeadlyObstacles(final Level level, final Tiles tiles, final Random random)
+    {
+        //get random deadly obstacle
+        final Tiles.Type type = getRandomDeadlyObstacle(random);
+        
+        for (int col = 0; col < tiles.getColumns(); col++)
+        {
+            //don't place any objects in safe zone
+            if (tiles.isSafeZone(col))
+                continue;
+            
+            //choose at random to skip
+            if (random.nextInt(ADD_DEADLY_OBSTACLES_PROBABILITY) != 0)
+                continue;
+            
+            //the row where we are trying to place obstacle
+            final int placeRow = tiles.getFloorRow() - type.getRowDimensions();
+            
+            //now make sure there is nothing blocking it
+            if (!tiles.isOccupied(col, placeRow, type, false) && tiles.isOccupied(col, placeRow + 1, type, false))
+            {
+                //also make sure this isn't next to a gap
+                if (tiles.hasTile(col + 1, tiles.getFloorRow()) && tiles.hasTile(col - 1, tiles.getFloorRow()))
+                {
+                    //locate x,y coordinates for the tile
+                    int x = level.getX(col);
+                    int y = level.getY(placeRow);
+
+                    //finally add deadly obstacle
+                    tiles.add(type, col, placeRow, x, y);
+                }
+            }
+        }
     }
     
     /**
@@ -356,7 +492,7 @@ public class LevelCreatorHelper
      * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createObstacles(final Level level, final Tiles tiles, final Random random)
+    public static void createCollisionObstacles(final Level level, final Tiles tiles, final Random random)
     {
         for (int col = 0; col < tiles.getColumns(); col++)
         {
@@ -365,7 +501,7 @@ public class LevelCreatorHelper
                 continue;
             
             //choose at random to skip
-            if (random.nextInt(ADD_OBSTACLES_PROBABILITY) != 0)
+            if (random.nextInt(ADD_COLLISION_OBSTACLES_PROBABILITY) != 0)
                 continue;
             
             //get random obstacle
@@ -394,12 +530,19 @@ public class LevelCreatorHelper
             //now make sure there is nothing blocking it
             if (!tiles.isOccupied(col, placeRow, type, false))
             {
+                //if there is a gap to the left don't place here, because it could make jumps difficult
+                if (!tiles.hasTile(col - 1, tiles.getFloorRow()))
+                    continue;
+                
                 //locate x,y coordinates for the tile
                 int x = level.getX(col);
                 int y = level.getY(placeRow);
 
                 //finally add obstacle
                 tiles.add(type, col, placeRow, x, y);
+                
+                //add space between collision obstacles
+                col += MIN_COLLISION_OBSTACLE_SPACE + type.getColumnDimensions();
             }
         }
     }
@@ -424,7 +567,7 @@ public class LevelCreatorHelper
                 continue;
 
             //pick a random height
-            final int difference = random.nextInt(PLATFORM_HEIGHT_DIFFERENCE);
+            final int difference = random.nextInt(PLATFORM_HEIGHT_DIFFERENCE) + 1;
             
             //get random obstacle
             Tiles.Type type = getRandomPlatform(random);
@@ -432,16 +575,55 @@ public class LevelCreatorHelper
             //determine where item will be placed
             final int placeRow = tiles.getFloorRow() - difference - 1;
             
-            //now make sure there is nothing blocking it
-            if (!tiles.isOccupied(col, placeRow, type, false))
+            boolean valid = true;
+            
+            for (int i = 0; i < MIN_PLATFORM_SPACE; i++)
             {
-                //locate x,y coordinates for the tile
-                int x = level.getX(col);
-                int y = level.getY(placeRow);
-
-                //place platform
-                tiles.add(type, col, placeRow, x, y);
+                //if any place is occupied then this is not valid
+                if (tiles.isOccupied(col, placeRow + i, type, false))
+                {
+                    valid = false;
+                    break;
+                }
             }
+            
+            //not enough space between
+            if (!valid)
+                continue;
+            
+            //locate x,y coordinates for the tile
+            int x = level.getX(col);
+            int y = level.getY(placeRow);
+
+            //place platform
+            tiles.add(type, col, placeRow, x, y);
+
+            //get number of columns in platform
+            final int columns = type.getColumnDimensions();
+            
+            //get random deadly obstacle
+            type = getRandomDeadlyObstacleCeiling(random);
+            
+            //if all tiles are occupied then that means we are not above a gap, which is good
+            boolean occupied = (tiles.isOccupied(col, tiles.getFloorRow(), type, true));
+            
+            //check if we are going to place a deadly obstacle below this one
+            if (random.nextInt(ADD_DEADLY_OBSTACLES_PROBABILITY) == 0 && occupied)
+            {
+                //add deadly obstacles right below platform
+                for (int i = 0; i < columns; i++)
+                {
+                    //locate x,y coordinates for the tile
+                    x = level.getX(col + i);
+                    y = level.getY(placeRow + 1);
+
+                    //place platform
+                    tiles.add(type, col + i, placeRow + 1, x, y);
+                }
+            }
+            
+            //provide space between platforms
+            col += (MIN_PLATFORM_SPACE + columns);
         }
     }
     
@@ -514,7 +696,131 @@ public class LevelCreatorHelper
                     //place cloud
                     tiles.add(type, col, placeRow, x, y);
                 }
+                
+                //skip columns
+                col += (type.getColumnDimensions() - 1);
             }
+        }
+    }
+    
+    /**
+     * Add breakable bricks and power up blocks
+     * 
+     * @param level Our level object used to determine the (x,y) coordinates
+     * @param tiles The object that contains all of the level's tiles
+     * @param random Object used to make random decisions
+     */
+    public static void createBlocks(final Level level, final Tiles tiles, final Random random)
+    {
+        for (int col = 0; col < tiles.getColumns(); col++)
+        {
+            //skip the safe zone
+            if (tiles.isSafeZone(col))
+                continue;
+            
+            //choose to add at random
+            if (random.nextInt(ADD_BLOCKS_PROBABILITY) != 0)
+                continue;
+            
+            //row where we want to place blocks at
+            final int placeRow = random.nextInt(tiles.getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
+            
+            //how many we want to add
+            final int total = random.nextInt(MAX_BLOCKS_ADD) + 1;
+            
+            //is this a valid place to put blocks
+            boolean valid = true;
+            
+            //determine the type of block added
+            final Tiles.Type type = (random.nextBoolean()) ? Tiles.Type.BreakableBrick : Tiles.Type.QuestionBlock;
+            
+            for (int i = 0; i < MIN_BLOCKS_SPACE; i++)
+            {
+                for (int z = 0; z < total; z++)
+                {
+                    //don't place blocks over gaps
+                    if (!tiles.hasTile(col + z, tiles.getFloorRow()))
+                    {
+                        valid = false;
+                        break;
+                    }
+                    
+                    //place is already occupied this is a bad place
+                    if (tiles.isOccupied(col + z, placeRow + i, type, false) || tiles.isOccupied(col + z, placeRow - i, type, false))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+                
+                if (!valid)
+                    break;
+            }
+            
+            if (!valid)
+                continue;
+            
+            for (int z = 0; z < total; z++)
+            {
+                //locate x,y coordinates for the tile
+                int x = level.getX(col + z);
+                int y = level.getY(placeRow);
+                
+                //add block to list
+                tiles.add(type, col + z, placeRow, x, y);
+            }
+            
+            //skip columns
+            col += (total - 1);
+        }
+    }
+    
+    public static void placeCoins(final Level level, final Tiles tiles, final PowerUps powerUps, final Random random)
+    {
+        for (int col = 0; col < tiles.getColumns(); col++)
+        {
+            //skip the safe zone
+            if (tiles.isSafeZone(col))
+                continue;
+            
+            //choose to add at random
+            if (random.nextInt(ADD_COINS_PROBABILITY) != 0)
+                continue;
+            
+            //row where we want to place coins at
+            final int placeRow = random.nextInt(tiles.getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
+            
+            //how many we want to add
+            final int total = random.nextInt(MAX_BLOCKS_ADD) + 1;
+            
+            //is this a valid place to put blocks
+            boolean valid = true;
+            
+            for (int z = 0; z < total; z++)
+            {
+                //we can't place coins if the space is occupied
+                if (tiles.hasTile(col + z, placeRow))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            if (!valid)
+                continue;
+            
+            for (int z = 0; z < total; z++)
+            {
+                //locate x,y coordinates for the tile
+                int x = level.getX(col + z);
+                int y = level.getY(placeRow);
+                
+                //add coin
+                powerUps.add(PowerUps.Type.Coin, x, y);
+            }
+            
+            //skip columns
+            col += (total - 1);
         }
     }
 }

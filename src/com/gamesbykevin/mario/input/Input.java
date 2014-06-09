@@ -128,6 +128,12 @@ public final class Input
             }
         }
         
+        if (keyboard.hasKeyReleased(KEY_JUMP))
+        {
+            if (mario.isJumping() && mario.getVelocityY() < 0)
+                mario.setVelocityY(-mario.getVelocityY());
+        }
+        
         if (keyboard.hasKeyPressed(KEY_FIREBALL))
         {
             if (!mario.isDucking() && mario.hasFire())

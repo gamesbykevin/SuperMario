@@ -73,7 +73,11 @@ public final class Manager implements IManager
         this.level = new Level();
         
         //create tiles of specified size
-        this.level.createTiles(Level.LEVEL_COLUMNS_PER_SCREEN * 8, engine.getResources().getGameImage(GameImages.Keys.LevelTiles), engine.getRandom());
+        this.level.createTiles(
+            Level.LEVEL_COLUMNS_PER_SCREEN * 8, 
+            engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
+            engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
+            engine.getRandom());
         this.level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
         
         this.mario = new Mario();
