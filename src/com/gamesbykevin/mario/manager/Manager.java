@@ -3,6 +3,7 @@ package com.gamesbykevin.mario.manager;
 import com.gamesbykevin.framework.menu.Menu;
 import com.gamesbykevin.framework.util.*;
 
+import com.gamesbykevin.mario.effects.*;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.*;
 import com.gamesbykevin.mario.input.Input;
@@ -74,14 +75,17 @@ public final class Manager implements IManager
         
         //create tiles of specified size
         this.level.createTiles(
-            Level.LEVEL_COLUMNS_PER_SCREEN * 8, 
+            Level.LEVEL_COLUMNS_PER_SCREEN * 16, 
             engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
             engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
             engine.getRandom());
         this.level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
+        this.level.createEffects(engine.getResources().getGameImage(GameImages.Keys.Effects));
         
+        //create new mario
         this.mario = new Mario();
         this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
+        this.mario.createMiscImages();
         this.mario.setDimensions();
         
         //set the start location of the hero

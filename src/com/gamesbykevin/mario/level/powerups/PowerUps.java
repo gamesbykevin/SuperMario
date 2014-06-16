@@ -4,12 +4,13 @@ import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.tiles.Tile;
+import com.gamesbykevin.mario.level.tiles.*;
 
 import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public final class PowerUps implements Disposable
 {
@@ -18,7 +19,7 @@ public final class PowerUps implements Disposable
      */
     public enum Type
     {
-        Mushroom, Flower, Star, Coin, CoinSwitch
+        Mushroom, Flower, Star, Coin
     }
     
     //contain our power up sprites
@@ -65,35 +66,38 @@ public final class PowerUps implements Disposable
         return null;
     }
     
-    public void add(final Type type, final int x, final int y)
+    public void add(final Type type, final double x, final double y, final double destinationY)
     {
         try
         {
             PowerUp powerUp;
-            powerUp = new PowerUp(type);
+            powerUp = new PowerUp(type, destinationY);
             powerUp.setLocation(x, y);
+            
+            //if we are already at our destination, flag it
+            if (y == destinationY)
+                powerUp.flagDestination();
             
             //setup animation
             switch (type)
             {
                 case Mushroom:
                     powerUp.addAnimation(type, 1, 0 * Tile.WIDTH, 0 * Tile.HEIGHT, Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), false);
+                    powerUp.setJumpVelocity(PowerUp.DEFAULT_JUMP_VELOCITY);
                     break;
 
                 case Flower:
                     powerUp.addAnimation(type, 1, 2 * Tile.WIDTH, 0 * Tile.HEIGHT, Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), false);
+                    powerUp.setJumpVelocity(PowerUp.DEFAULT_JUMP_VELOCITY);
                     break;
 
                 case Star:
                     powerUp.addAnimation(type, 1, 1 * Tile.WIDTH, 0 * Tile.HEIGHT, Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), false);
+                    powerUp.setJumpVelocity(PowerUp.DEFAULT_JUMP_VELOCITY);
                     break;
 
                 case Coin:
                     powerUp.addAnimation(type, 4, 0 * Tile.WIDTH, 1 * Tile.HEIGHT, Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
-                    break;
-
-                case CoinSwitch:
-                    powerUp.addAnimation(type, 3, 0 * Tile.WIDTH, 2 * Tile.HEIGHT, Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), false);
                     break;
 
                 default:
@@ -124,18 +128,110 @@ public final class PowerUps implements Disposable
         }
     }
     
-    public void update(final long time, final double scrollX)
+    public void update(final long time, final double scrollX, final Random random, final Tiles tiles)
     {
         for (int i = 0; i < powerUps.size(); i++)
         {
-            //set the velocity according to the scrolling
-            powerUps.get(i).setVelocityX(scrollX);
+            PowerUp powerUp = powerUps.get(i);
             
-            //update location
-            powerUps.get(i).update();
+            //if not at destination yet
+            if (!powerUp.hasDestination())
+            {
+                if (powerUp.getY() == powerUp.getDestinationY())
+                {
+                    //mark as found destination
+                    powerUp.flagDestination();
+                    
+                    //stop y-velocity
+                    powerUp.resetVelocityY();
+                    
+                    //these are the power ups that move after reaching initial destination
+                    switch (powerUp.getType())
+                    {
+                        case Mushroom:
+                            //choose random x-velocity direction
+                            powerUp.setVelocityX((random.nextBoolean()) ? -PowerUp.DEFAULT_SPEED_VELOCITY_X : PowerUp.DEFAULT_SPEED_VELOCITY_X);
+                            break;
+                            
+                        case Star:
+                            //choose random x-velocity direction
+                            powerUp.setVelocityX((random.nextBoolean()) ? -PowerUp.DEFAULT_SPEED_VELOCITY_X : PowerUp.DEFAULT_SPEED_VELOCITY_X);
+                            
+                            //the star will jump
+                            powerUp.startJump();
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                //apply gravity once destination has been reached
+                powerUp.applyGravity(tiles);
+                
+                switch (powerUp.getType())
+                {
+                    case Star:
+
+                        //we always want the star to keep jumping
+                        if (!powerUp.isJumping())
+                            powerUp.startJump();
+                        break;
+                }
+            
+                if (powerUp.hasVelocityX())
+                {
+                    Tile west = powerUp.checkCollisionWest(tiles);
+                    Tile east = powerUp.checkCollisionEast(tiles);
+
+                    if (west != null)
+                    {
+                        if (powerUp.getVelocityX() < 0)
+                            powerUp.setVelocityX(-powerUp.getVelocityX());
+                    }
+
+                    if (east != null)
+                    {
+                        if (powerUp.getVelocityX() > 0)
+                            powerUp.setVelocityX(-powerUp.getVelocityX());
+                    }
+                }
+                
+                if (powerUp.hasVelocityY())
+                {
+                    //makre sure we are jumping before checking north tile
+                    if (powerUp.getVelocityY() < 0)
+                    {
+                        //make sure we are also jumping
+                        if (powerUp.isJumping())
+                        {
+                            Tile north = powerUp.checkCollisionNorth(tiles);
+                            
+                            //if we hit a north tile
+                            if (north != null)
+                                powerUp.setY(north.getY() + north.getHeight());
+                        }
+                    }
+                    
+                    //make sure we are falling before checking south tile
+                    if (powerUp.getVelocityY() > 0)
+                    {
+                        Tile south = powerUp.checkCollisionSouth(tiles);
+
+                        //if we hit a south tile and are jumping, we should stop
+                        if (south != null && powerUp.isJumping())
+                            powerUp.stopJump();
+                    }
+                }
+            }
+            
+            //update location based on scrolling
+            powerUp.setX(powerUp.getX() + scrollX);
+            
+            //update location based velocity
+            powerUp.update();
             
             //update animation
-            powerUps.get(i).update(time);
+            powerUp.update(time);
         }
     }
     

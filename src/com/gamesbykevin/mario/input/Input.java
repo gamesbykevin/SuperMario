@@ -26,6 +26,14 @@ public final class Input
         //get mario object
         final Hero mario = engine.getManager().getMario();
         
+        //if the hero is dead, don't continue
+        if (mario.isDead())
+        {
+            //stop the hero from moving
+            mario.resetVelocity();
+            return;
+        }
+        
         //get keyboard input
         final Keyboard keyboard = engine.getKeyboard();
         
@@ -124,7 +132,6 @@ public final class Input
             if (mario.canJump())
             {
                 mario.startJump();
-                mario.setJump(true);
             }
         }
         
@@ -132,14 +139,6 @@ public final class Input
         {
             if (mario.isJumping() && mario.getVelocityY() < 0)
                 mario.setVelocityY(-mario.getVelocityY());
-        }
-        
-        if (keyboard.hasKeyPressed(KEY_FIREBALL))
-        {
-            if (!mario.isDucking() && mario.hasFire())
-            {
-                mario.setAttack(true);
-            }
         }
         
         if (keyboard.hasKeyPressed(KEY_RUN))
@@ -168,6 +167,28 @@ public final class Input
                     mario.resetVelocityX();
                     mario.setIdle(true);
                 }
+            }
+        }
+        
+        if (keyboard.hasKeyPressed(KEY_FIREBALL))
+        {
+            if (!mario.isDucking() && mario.hasFire() && !mario.hasFireball())
+            {
+                mario.setAttack(true);
+                mario.addFireball();
+            }
+        }
+        
+        //only attack when key is released
+        if (keyboard.hasKeyReleased(KEY_FIREBALL))
+        {
+            if (mario.isAttacking())
+            {
+                mario.setAttack(false);
+                
+                //make sure mario can walk afterwards
+                if (!mario.isWalking() || !mario.isJumping() || !mario.isRunning())
+                    mario.setIdle(true);
             }
         }
         

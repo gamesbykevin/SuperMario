@@ -24,9 +24,13 @@ public final class Tiles implements Disposable
     {
         Empty(1,1), 
         
-        QuestionBlock(1,1), UsedBlock(1,1), BreakableBrick(1,1), RotatingGear(1,1), 
+        QuestionBlock(1,1), UsedBlock(1,1), BreakableBrick(1,1), RotatingGear(1,1), RotatingGear2(1,1), 
         Lava(1,1), Water1(1,1), Water2(1,1), 
         BigBlock(2,2), BiggerBlock1(3,3), BiggerBlock2(3,3), BiggerBlock3(3,3), BiggerBlock4(3,3), 
+        
+        BiggerBlock5(3, 2), BiggerBlock6(6, 2), BiggerBlock7(4, 2), BiggerBlock8(4, 2), BiggerBlock9(5, 3),
+        BiggerBlock10(4, 2), BiggerBlock11(4, 2), 
+        
         VerticalPipe1(2,2), VerticalPipe2(2,2), VerticalPipe3(2,2), VerticalPipe4(2,2), 
         VerticalPipe5(2,2), VerticalPipe6(2,2), VerticalPipe7(2,2), VerticalPipe8(2,2), 
         
@@ -46,12 +50,30 @@ public final class Tiles implements Disposable
         Floor11West(1,2), Floor11Center(1,2), Floor11East(1,2), 
         Floor12West(1,2), Floor12Center(1,2), Floor12East(1,2), 
         Floor13West(1,2), Floor13Center(1,2), Floor13East(1,2), 
+
+        Floor14West(1,2), Floor14Center(1,2), Floor14East(1,2), 
+        Floor15West(1,2), Floor15Center(1,2), Floor15East(1,2), 
+        Floor16West(1,2), Floor16Center(1,2), Floor16East(1,2), 
+        Floor17West(1,2), Floor17Center(1,2), Floor17East(1,2), 
+        Floor18West(1,2), Floor18Center(1,2), Floor18East(1,2), 
+        Floor19West(1,2), Floor19Center(1,2), Floor19East(1,2), 
+        Floor20West(1,2), Floor20Center(1,2), Floor20East(1,2), 
         
-        PlatformBlock1(1,1), PlatformBlock2(1,1), PlatformBlock3(1,1), PlatformBlock4(1,1),
-        Platform1(3,1), Platform2(3,1), Platform3(3,1), 
-        Cloud1(3,1), Cloud2(3,1), Cloud3(3,3), 
+        PlatformBlock1(1,1), PlatformBlock2(1,1), PlatformBlock3(1,1), PlatformBlock4(1,1), PlatformBlock5(1,1), 
+        PlatformBlock6(1,1), PlatformBlock7(1,1), PlatformBlock8(1,1), 
+        
+        Platform1(3,1), Platform2(3,1), Platform3(3,1), Platform4(2,1), Platform5(2,1), Platform6(2,1), 
+        Platform7(3,1), 
+        
+        Cloud1(3,1), Cloud2(3,1), Cloud3(3,3), Cloud4(2,2), 
+        
         SpikesUp1(1,1), SpikesUp2(1,1), SpikesDown1(1,1), SpikesDown2(1,1), 
-        BackgroundPlant(1,1), Background1(2,2), Background2(3,1); 
+        
+        BackgroundPlant(1,1), BackgroundPlant2(1,1), Background1(2,2), Background2(3,1), 
+        
+        Background3(4,1), Background4(4,1), Background5(3,1), Background6(6, 4),
+        
+        Goal(1,1);
         
         private int col, row;
         
@@ -172,10 +194,14 @@ public final class Tiles implements Disposable
      */
     public boolean isOccupied(final int column, final int row, final Type type, final boolean checkAll)
     {
-        for (int z = 0; z < type.getRowDimensions(); z++)
+        for (int x = 0; x < type.getColumnDimensions(); x++)
         {
-            for (int x = 0; x < type.getColumnDimensions(); x++)
+            for (int z = 0; z < type.getRowDimensions(); z++)
             {
+                //we won't check tiles that are out of range
+                if (!hasRange(type, column + x, row + z))
+                    continue;
+                
                 //does a tile already exist at this location
                 if (hasTile(column + x, row + z))
                 {
@@ -251,389 +277,527 @@ public final class Tiles implements Disposable
      * @param x x-coordinate where tile will be drawn
      * @param y y-coordinate where tile will be drawn
      */
-    public void add(final Type type, final int column, final int row, final int x, final int y)
+    public void add(final Type type, final double column, final double row, final double x, final double y)
     {
         try
         {
-            //tile object
-            Tile tile;
-            
             //each tile will have 1 animation
             switch (type)
             {
                 case Empty:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 1, 0, 0, 0, 0, Timers.toNanoSeconds(125L), false);
-                    tile.setDamage(false);
-                    tile.setSolid(false);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 1, 0, false, -1, -1, x, y, column, row, false, false, false);
                     break;
                 
                 case UsedBlock:
-                    addSingleObject(type, 4, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 0, x, y, column, row, false, true, false);
                     break;
                 
                 case Lava:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(9), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
-                    tile.setDamage(true);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(125L), true, 0, 9, x, y, column, row, true, true, true);
                     break;
                 
                 case Water1:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(10), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
-                    tile.setDamage(true);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(125L), true, 0, 10, x, y, column, row, true, true, true);
                     break;
                     
                 case Water2:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(11), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
-                    tile.setDamage(true);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(125L), true, 0, 11, x, y, column, row, true, true, true);
                     break;
                     
                 case QuestionBlock:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(0), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(125L), true);
-                    tile.setDamage(false);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(125L), true, 0, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case BreakableBrick:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(1), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(200L), true);
-                    tile.setDamage(false);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(200L), true, 0, 1, x, y, column, row, false, true, false);
                     break;
                     
                 case RotatingGear:
-                    tile = new Tile(type);
-                    tile.addAnimation(type, 4, getStartX(0), getStartY(2), Tile.WIDTH, Tile.HEIGHT, Timers.toNanoSeconds(75L), true);
-                    tile.setDamage(true);
-                    tile.setSolid(true);
-                    tile.setLocation(x, y);
-                    set(tile, column, row);
+                    addSingleObject(type, 4, Timers.toNanoSeconds(75L), true, 0, 2, x, y, column, row, true, true, false);
                     break;
                 
+                case RotatingGear2:
+                    addSingleObject(type, 4, Timers.toNanoSeconds(75L), true, 0, 21, x, y, column, row, true, true, false);
+                    break;
+                    
                 case VerticalPipe1:
-                    addSingleObject(type, 0, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 0, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe2:
-                    addSingleObject(type, 2, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 2, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe3:
-                    addSingleObject(type, 4, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe4:
-                    addSingleObject(type, 0, 5, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 0, 5, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe5:
-                    addSingleObject(type, 2, 5, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 2, 5, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe6:
-                    addSingleObject(type, 4, 5, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 5, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe7:
-                    addSingleObject(type, 0, 7, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 0, 7, x, y, column, row, false, true, false);
                     break;
                     
                 case VerticalPipe8:
-                    addSingleObject(type, 2, 7, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 2, 7, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe1:
-                    addSingleObject(type, 4, 1, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 1, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe2:
-                    addSingleObject(type, 6, 1, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 6, 1, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe3:
-                    addSingleObject(type, 8, 1, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 8, 1, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe4:
-                    addSingleObject(type, 6, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 6, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe5:
-                    addSingleObject(type, 8, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 8, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe6:
-                    addSingleObject(type, 6, 5, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 6, 5, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe7:
-                    addSingleObject(type, 6, 7, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 6, 7, x, y, column, row, false, true, false);
                     break;
                     
                 case HorizontalPipe8:
-                    addSingleObject(type, 4, 7, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 7, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor1West:
-                    addSingleObject(type, 10, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor1Center:
-                    addSingleObject(type, 11, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor1East: 
-                    addSingleObject(type, 12, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor2West:
-                    addSingleObject(type, 10, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor2Center:
-                    addSingleObject(type, 11, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor2East: 
-                    addSingleObject(type, 12, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor3West:
-                    addSingleObject(type, 10, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor3Center:
-                    addSingleObject(type, 11, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor3East: 
-                    addSingleObject(type, 12, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor4West:
-                    addSingleObject(type, 10, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor4Center:
-                    addSingleObject(type, 11, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor4East: 
-                    addSingleObject(type, 12, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor5West:
-                    addSingleObject(type, 10, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor5Center:
-                    addSingleObject(type, 11, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor5East: 
-                    addSingleObject(type, 12, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor6West:
-                    addSingleObject(type, 10, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor6Center:
-                    addSingleObject(type, 11, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor6East: 
-                    addSingleObject(type, 12, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor7West:
-                    addSingleObject(type, 10, 12, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 10, 12, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor7Center:
-                    addSingleObject(type, 11, 12, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 11, 12, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor7East: 
-                    addSingleObject(type, 12, 12, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 12, 12, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor8West:
-                    addSingleObject(type, 13, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor8Center:
-                    addSingleObject(type, 14, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor8East: 
-                    addSingleObject(type, 15, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor9West:
-                    addSingleObject(type, 13, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor9Center:
-                    addSingleObject(type, 14, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor9East: 
-                    addSingleObject(type, 15, 2, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 2, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor10West:
-                    addSingleObject(type, 13, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor10Center:
-                    addSingleObject(type, 14, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor10East: 
-                    addSingleObject(type, 15, 4, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 4, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor11West:
-                    addSingleObject(type, 13, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor11Center:
-                    addSingleObject(type, 14, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor11East: 
-                    addSingleObject(type, 15, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 6, x, y, column, row, false, true, false);
                     break;
 
                 case Floor12West:
-                    addSingleObject(type, 13, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor12Center:
-                    addSingleObject(type, 14, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor12East: 
-                    addSingleObject(type, 15, 8, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 8, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor13West:
-                    addSingleObject(type, 13, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 13, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor13Center:
-                    addSingleObject(type, 14, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 14, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Floor13East: 
-                    addSingleObject(type, 15, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 15, 10, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor14West:
+                    addSingleObject(type, 1, 0, false, 2, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor14Center:
+                    addSingleObject(type, 1, 0, false, 3, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor14East: 
+                    addSingleObject(type, 1, 0, false, 4, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor15West:
+                    addSingleObject(type, 1, 0, false, 5, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor15Center:
+                    addSingleObject(type, 1, 0, false, 6, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor15East: 
+                    addSingleObject(type, 1, 0, false, 7, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor16West:
+                    addSingleObject(type, 1, 0, false, 8, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor16Center:
+                    addSingleObject(type, 1, 0, false, 9, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor16East: 
+                    addSingleObject(type, 1, 0, false, 10, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor17West:
+                    addSingleObject(type, 1, 0, false, 11, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor17Center:
+                    addSingleObject(type, 1, 0, false, 12, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor17East: 
+                    addSingleObject(type, 1, 0, false, 13, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor18West:
+                    addSingleObject(type, 1, 0, false, 0, 25, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor18Center:
+                    addSingleObject(type, 1, 0, false, 1, 25, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor18East: 
+                    addSingleObject(type, 1, 0, false, 2, 25, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor19West:
+                    addSingleObject(type, 1, 0, false, 0, 27, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor19Center:
+                    addSingleObject(type, 1, 0, false, 1, 27, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor19East: 
+                    addSingleObject(type, 1, 0, false, 2, 27, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor20West:
+                    addSingleObject(type, 1, 0, false, 3, 27, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor20Center:
+                    addSingleObject(type, 1, 0, false, 4, 27, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Floor20East: 
+                    addSingleObject(type, 1, 0, false, 5, 27, x, y, column, row, false, true, false);
                     break;
                     
                 case PlatformBlock1:
-                    addSingleObject(type, 5, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 5, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case PlatformBlock2:
-                    addSingleObject(type, 6, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 6, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case PlatformBlock3:
-                    addSingleObject(type, 7, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 7, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case PlatformBlock4:
-                    addSingleObject(type, 8, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 8, 0, x, y, column, row, false, true, false);
+                    break;
+                    
+                case PlatformBlock5:
+                    addSingleObject(type, 1, 0, false, 8, 8, x, y, column, row, false, true, false);
+                    break;
+                    
+                case PlatformBlock6:
+                    addSingleObject(type, 1, 0, false, 9, 8, x, y, column, row, false, true, false);
+                    break;
+                    
+                case PlatformBlock7:
+                    addSingleObject(type, 1, 0, false, 8, 9, x, y, column, row, false, true, false);
+                    break;
+                    
+                case PlatformBlock8:
+                    addSingleObject(type, 1, 0, false, 9, 9, x, y, column, row, false, true, false);
                     break;
                     
                 case Platform1: 
-                    addSingleObject(type, 4, 9, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 9, x, y, column, row, false, true, false);
                     break;
                     
                 case Platform2: 
-                    addSingleObject(type, 4, 10, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 4, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Platform3: 
-                    addSingleObject(type, 0, 13, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 0, 13, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Platform4: 
+                    addSingleObject(type, 1, 0, false, 8, 5, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Platform5: 
+                    addSingleObject(type, 1, 0, false, 8, 5, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Platform6: 
+                    addSingleObject(type, 1, 0, false, 8, 5, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Platform7: 
+                    addSingleObject(type, 1, 0, false, 7, 10, x, y, column, row, false, true, false);
                     break;
                     
                 case Cloud1:
-                    addSingleObject(type, 4, 11, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 4, 11, x, y, column, row, false, false, false);
                     break;
                             
                 case Cloud2:
-                    addSingleObject(type, 4, 12, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 4, 12, x, y, column, row, false, false, false);
                     break;
                     
                 case Cloud3:
-                    addSingleObject(type, 4, 13, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 4, 13, x, y, column, row, false, false, false);
+                    break;
+                    
+                case Cloud4:
+                    addSingleObject(type, 1, 0, false, 2, 14, x, y, column, row, false, false, false);
                     break;
                     
                 case SpikesUp1:
-                    addSingleObject(type, 0, 12, x, y, column, row, true, true);
+                    addSingleObject(type, 1, 0, false, 0, 12, x, y, column, row, true, true, false);
                     break;
                     
                 case SpikesUp2:
-                    addSingleObject(type, 2, 12, x, y, column, row, true, true);
+                    addSingleObject(type, 1, 0, false, 2, 12, x, y, column, row, true, true, false);
                     break;
                     
                 case SpikesDown1:
-                    addSingleObject(type, 1, 12, x, y, column, row, true, true);
+                    addSingleObject(type, 1, 0, false, 1, 12, x, y, column, row, true, true, false);
                     break;
                     
                 case SpikesDown2:
-                    addSingleObject(type, 3, 12, x, y, column, row, true, true);
+                    addSingleObject(type, 1, 0, false, 3, 12, x, y, column, row, true, true, false);
                     break;
                     
                 case BackgroundPlant:
-                    addSingleObject(type, 9, 0, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 9, 0, x, y, column, row, false, false, false);
+                    break;
+                    
+                case BackgroundPlant2:
+                    addSingleObject(type, 1, 0, false, 3, 16, x, y, column, row, false, false, false);
                     break;
                     
                 case Background1:
-                    addSingleObject(type, 0, 14, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 0, 14, x, y, column, row, false, false, false);
                     break;
                     
                 case Background2:
-                    addSingleObject(type, 0, 16, x, y, column, row, false, false);
+                    addSingleObject(type, 1, 0, false, 0, 16, x, y, column, row, false, false, false);
+                    break;
+                    
+                case Background3:
+                    addSingleObject(type, 1, 0, false, 0, 22, x, y, column, row, false, false, false);
+                    break;
+                    
+                case Background4:
+                    addSingleObject(type, 1, 0, false, 0, 23, x, y, column, row, false, false, false);
+                    break;
+                    
+                case Background5:
+                    addSingleObject(type, 1, 0, false, 0, 24, x, y, column, row, false, false, false);
+                    break;
+                    
+                case Background6:
+                    addSingleObject(type, 1, 0, false, 6, 25, x, y, column, row, false, false, false);
                     break;
                     
                 case BigBlock:
-                    addSingleObject(type, 0, 17, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 0, 17, x, y, column, row, false, true, false);
                     break;
 
                 case BiggerBlock1:
-                    addSingleObject(type, 16, 0, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 16, 0, x, y, column, row, false, true, false);
                     break;
                     
                 case BiggerBlock2:
-                    addSingleObject(type, 16, 3, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 16, 3, x, y, column, row, false, true, false);
                     break;
                     
                 case BiggerBlock3:
-                    addSingleObject(type, 16, 6, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 16, 6, x, y, column, row, false, true, false);
                     break;
                     
                 case BiggerBlock4:
-                    addSingleObject(type, 16, 9, x, y, column, row, false, true);
+                    addSingleObject(type, 1, 0, false, 16, 9, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock5:
+                    addSingleObject(type, 1, 0, false, 7, 12, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock6:
+                    addSingleObject(type, 1, 0, false, 8, 15, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock7:
+                    addSingleObject(type, 1, 0, false, 14, 13, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock8:
+                    addSingleObject(type, 1, 0, false, 14, 15, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock9:
+                    addSingleObject(type, 1, 0, false, 14, 17, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock10:
+                    addSingleObject(type, 1, 0, false, 0, 19, x, y, column, row, false, true, false);
+                    break;
+                    
+                case BiggerBlock11:
+                    addSingleObject(type, 1, 0, false, 4, 19, x, y, column, row, false, true, false);
+                    break;
+                    
+                case Goal:
+                    addSingleObject(type, 1, 0, false, 0, 29, x, y, column, row, false, true, false);
                     break;
                     
                 default:
@@ -650,6 +814,9 @@ public final class Tiles implements Disposable
      * Add a single object to our tile array.<br>
      * An object can take multiple cols/rows
      * @param type The type of tile
+     * @param animationCount Number of animations
+     * @param animationDelay The tile delay between animations
+     * @param loop Do we loop the animation
      * @param animationCol Start column of tile
      * @param animationRow Start row of tile
      * @param x x-coordinate where tile(s) will be drawn
@@ -658,8 +825,9 @@ public final class Tiles implements Disposable
      * @param row Row where this will lie in our array
      * @param damage Does this object cause damage upon collision
      * @param solid Is this object solid, so we know to check for collision
+     * @param death Will this object cause death upon collision
      */
-    private void addSingleObject(final Type type, final int animationCol, final int animationRow, final int x, final int y, final int column, final int row, final boolean damage, final boolean solid)
+    private void addSingleObject(final Type type, final int animationCount, final long animationDelay, final boolean loop, final int animationCol, final int animationRow, final double x, final double y, final double column, final double row, final boolean damage, final boolean solid, final boolean death)
     {
         Tile tile;
         
@@ -668,13 +836,25 @@ public final class Tiles implements Disposable
             for (int z = 0; z < type.getRowDimensions(); z++)
             {
                 tile = new Tile(type);
-                tile.addAnimation(type, 1, getStartX(animationCol + i), getStartY(animationRow + z), Tile.WIDTH, Tile.HEIGHT, 0, false);
+                tile.addAnimation(type, animationCount, getStartX(animationCol + i), getStartY(animationRow + z), Tile.WIDTH, Tile.HEIGHT, animationDelay, loop);
                 tile.setDamage(damage);
                 tile.setSolid(solid);
+                tile.setDeath(death);
                 tile.setLocation(x + (Tile.WIDTH * i), y + (Tile.HEIGHT * z));
                 set(tile, column + i, row + z);
             }
         }
+    }
+    
+    
+    /**
+     * Remove tile at specified location
+     * @param column
+     * @param row 
+     */
+    public void remove(final int column, final int row)
+    {
+        tiles[row][column] = null;
     }
     
     /**
@@ -683,10 +863,14 @@ public final class Tiles implements Disposable
      * @param column The location in the array where we want to assign the tile
      * @param row The location in the array where we want to assign the tile
      */
-    private void set(final Tile tile, final int column, final int row)
+    private void set(final Tile tile, final double column, final double row)
     {
+        //set the location where this will be in the array
+        tile.setCol(column);
+        tile.setRow(row);
+        
         //set the tile in the array
-        tiles[row][column] = tile;
+        tiles[(int)row][(int)column] = tile;
     }
     
     @Override
@@ -743,11 +927,11 @@ public final class Tiles implements Disposable
         //now place some obstacles
         LevelCreatorHelper.createCollisionObstacles(level, this, random);
         
-        //here we will place breakable bricks and power blocks
-        LevelCreatorHelper.createBlocks(level, this, random);
-        
         //now lets place some platforms
         LevelCreatorHelper.createPlatforms(level, this, random);
+        
+        //here we will place breakable bricks and power blocks
+        LevelCreatorHelper.createBlocks(level, this, random);
         
         //now lets place some backgrounds
         LevelCreatorHelper.createBackgrounds(level, this, random);
@@ -760,6 +944,9 @@ public final class Tiles implements Disposable
         
         //place coins in the level
         LevelCreatorHelper.placeCoins(level, this, powerUps, random);
+        
+        //place switch which will represent the goal
+        LevelCreatorHelper.createGoal(level, this);
         
         try
         {
@@ -822,11 +1009,11 @@ public final class Tiles implements Disposable
     }
     
     /**
-     * Render the tiles
+     * Render the tiles that the players can't walk through
      * @param graphics Object where images will be written
      * @param window The area where the tiles will be rendered so we don't have to render tiles that aren't part of the screen
      */
-    public void render(final Graphics graphics, final Rectangle window)
+    public void renderSolidTiles(final Graphics graphics, final Rectangle window)
     {
         for (int row = 0; row < tiles.length; row++)
         {
@@ -838,15 +1025,50 @@ public final class Tiles implements Disposable
                 
                 Tile tile = getTile(col, row);
                 
-                //if not on screen, we won't render the tile
-                if (tile.getX() + tile.getWidth()  < window.x || tile.getX() > window.x + window.width)
-                    continue;
-                if (tile.getY() + tile.getHeight() < window.y || tile.getY() > window.y + window.height)
-                    continue;
-                
-                //draw the tile
-                tile.draw(graphics, image);
+                if (!LevelCreatorHelper.isBackgroundTile(tile) && !LevelCreatorHelper.isCloudTile(tile))
+                    renderTile(tile, graphics, window);
             }
         }
+    }
+    
+    /**
+     * Render the tiles that the players can walk through without collision detection
+     * @param graphics Object where images will be written
+     * @param window The area where the tiles will be rendered so we don't have to render tiles that aren't part of the screen
+     */
+    public void renderNonSolidTiles(final Graphics graphics, final Rectangle window)
+    {
+        for (int row = 0; row < tiles.length; row++)
+        {
+            for (int col = 0; col < tiles[row].length; col++)
+            {
+                //if there is no tile here skip
+                if (!hasTile(col, row))
+                    continue;
+                
+                Tile tile = getTile(col, row);
+                
+                if (LevelCreatorHelper.isBackgroundTile(tile) || LevelCreatorHelper.isCloudTile(tile))
+                    renderTile(tile, graphics, window);
+            }
+        }
+    }
+    
+    /**
+     * Render a tile
+     * @param tile The tile we want to draw
+     * @param graphics Object where images will be written
+     * @param window The area where the tiles will be rendered so we don't have to render tiles that aren't part of the screen
+     */
+    public void renderTile(final Tile tile, final Graphics graphics, final Rectangle window)
+    {
+        //if not on screen, we won't render the tile
+        if (tile.getX() + tile.getWidth()  < window.x || tile.getX() > window.x + window.width)
+            return;
+        if (tile.getY() + tile.getHeight() < window.y || tile.getY() > window.y + window.height)
+            return;
+
+        //draw the tile
+        tile.draw(graphics, image);
     }
 }

@@ -13,6 +13,9 @@ public final class Tile extends Entity implements Disposable
     //will collision with this tile cause damage
     private boolean damage = false;
     
+    //will collision with this tile cause instant death
+    private boolean death = false;
+    
     //do we check for collision
     private boolean solid;
     
@@ -39,6 +42,16 @@ public final class Tile extends Entity implements Disposable
     public boolean hasDamage()
     {
         return this.damage;
+    }
+    
+    protected void setDeath(final boolean death)
+    {
+        this.death = death;
+    }
+    
+    public boolean hasDeath()
+    {
+        return this.death;
     }
     
     protected void setSolid(final boolean solid)

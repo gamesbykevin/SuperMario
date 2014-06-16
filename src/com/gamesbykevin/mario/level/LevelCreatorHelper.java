@@ -13,10 +13,10 @@ public class LevelCreatorHelper
     private static final int ADD_CLOUDS_PROBABILITY = 9;
     private static final int ADD_BACKGROUNDS_PROBABILITY = 3;
     private static final int ADD_COLLISION_OBSTACLES_PROBABILITY = 3;
-    private static final int ADD_DEADLY_OBSTACLES_PROBABILITY = 7;
-    private static final int ADD_PLATFORMS_PROBABILITY = 3;
-    private static final int ADD_BLOCKS_PROBABILITY = 6;
-    private static final int ADD_COINS_PROBABILITY = 7;
+    private static final int ADD_DEADLY_OBSTACLES_PROBABILITY = 6;
+    private static final int ADD_PLATFORMS_PROBABILITY = 4;
+    private static final int ADD_BLOCKS_PROBABILITY = 3;
+    private static final int ADD_COINS_PROBABILITY = 5;
     
     /**
      * How many blocks can be added at once
@@ -24,9 +24,16 @@ public class LevelCreatorHelper
     private static final int MAX_BLOCKS_ADD = 6;
     
     /**
+     * how many rows of coins can we add at once
+     */
+    private static final int MAX_COIN_ROWS_ADD = 3;
+    
+    private static final int MAX_COIN_COLS_ADD = 9;
+    
+    /**
      * How much space is needed between the blocks and other obstacles
      */
-    private static final int MIN_BLOCKS_SPACE = 2;
+    private static final int MIN_BLOCKS_SPACE = 3;
     
     /**
      * How many tiles the average floor is
@@ -97,6 +104,27 @@ public class LevelCreatorHelper
                     
                 case Floor13Center:
                     return Tiles.Type.Floor13West;
+                    
+                case Floor14Center:
+                    return Tiles.Type.Floor14West;
+                    
+                case Floor15Center:
+                    return Tiles.Type.Floor15West;
+                    
+                case Floor16Center:
+                    return Tiles.Type.Floor16West;
+                    
+                case Floor17Center:
+                    return Tiles.Type.Floor17West;
+                    
+                case Floor18Center:
+                    return Tiles.Type.Floor18West;
+                    
+                case Floor19Center:
+                    return Tiles.Type.Floor19West;
+                    
+                case Floor20Center:
+                    return Tiles.Type.Floor20West;
 
                 default: 
                     throw new Exception("Floor type not setup here: " + type.toString());
@@ -154,6 +182,27 @@ public class LevelCreatorHelper
                     
                 case Floor13Center:
                     return Tiles.Type.Floor13East;
+                    
+                case Floor14Center:
+                    return Tiles.Type.Floor14East;
+                    
+                case Floor15Center:
+                    return Tiles.Type.Floor15East;
+                    
+                case Floor16Center:
+                    return Tiles.Type.Floor16East;
+                    
+                case Floor17Center:
+                    return Tiles.Type.Floor17East;
+                    
+                case Floor18Center:
+                    return Tiles.Type.Floor18East;
+                    
+                case Floor19Center:
+                    return Tiles.Type.Floor19East;
+                    
+                case Floor20Center:
+                    return Tiles.Type.Floor20East;
 
                 default: 
                     throw new Exception("Floor type not setup here: " + type.toString());
@@ -183,6 +232,13 @@ public class LevelCreatorHelper
         options.add(Tiles.Type.Floor11Center);
         options.add(Tiles.Type.Floor12Center);
         options.add(Tiles.Type.Floor13Center);
+        options.add(Tiles.Type.Floor14Center);
+        options.add(Tiles.Type.Floor15Center);
+        options.add(Tiles.Type.Floor16Center);
+        options.add(Tiles.Type.Floor17Center);
+        options.add(Tiles.Type.Floor18Center);
+        options.add(Tiles.Type.Floor19Center);
+        options.add(Tiles.Type.Floor20Center);
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
@@ -195,22 +251,52 @@ public class LevelCreatorHelper
         options.add(Tiles.Type.Platform1);
         options.add(Tiles.Type.Platform2);
         options.add(Tiles.Type.Platform3);
+        options.add(Tiles.Type.Platform4);
+        options.add(Tiles.Type.Platform5);
+        options.add(Tiles.Type.Platform6);
+        options.add(Tiles.Type.Platform7);
         options.add(Tiles.Type.PlatformBlock1);
         options.add(Tiles.Type.PlatformBlock2);
         options.add(Tiles.Type.PlatformBlock3);
         options.add(Tiles.Type.PlatformBlock4);
+        options.add(Tiles.Type.PlatformBlock5);
+        options.add(Tiles.Type.PlatformBlock6);
+        options.add(Tiles.Type.PlatformBlock7);
+        options.add(Tiles.Type.PlatformBlock8);
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
+    }
+    
+    public static boolean isCloudTile(final Tile tile)
+    {
+        return isCloudTile(tile.getType());
+    }
+    
+    public static boolean isCloudTile(final Tiles.Type type)
+    {
+        switch(type)
+        {
+            case Cloud1:
+            case Cloud2:
+            case Cloud3:
+            case Cloud4:
+                return true;
+                
+            default:
+                return false;
+        }
     }
     
     private static Tiles.Type getRandomCloud(final Random random)
     {
         List<Tiles.Type> options = new ArrayList<>();
         
-        options.add(Tiles.Type.Cloud1);
-        options.add(Tiles.Type.Cloud2);
-        options.add(Tiles.Type.Cloud3);
+        for (int i = 0; i < Tiles.Type.values().length; i++)
+        {
+            if (isCloudTile(Tiles.Type.values()[i]))
+                options.add(Tiles.Type.values()[i]);
+        }
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
@@ -232,6 +318,7 @@ public class LevelCreatorHelper
         List<Tiles.Type> options = new ArrayList<>();
         
         options.add(Tiles.Type.RotatingGear);
+        options.add(Tiles.Type.RotatingGear2);
         options.add(Tiles.Type.SpikesUp1);
         options.add(Tiles.Type.SpikesUp2);
         
@@ -251,13 +338,39 @@ public class LevelCreatorHelper
         return options.get(random.nextInt(options.size()));
     }
     
+    public static boolean isBackgroundTile(final Tile tile)
+    {
+        return isBackgroundTile(tile.getType());
+    }
+    
+    public static boolean isBackgroundTile(final Tiles.Type type)
+    {
+        switch (type)
+        {
+            case BackgroundPlant:
+            case BackgroundPlant2:
+            case Background1:
+            case Background2:
+            case Background3:
+            case Background4:
+            case Background5:
+            case Background6:
+                return true;
+                
+            default:
+                return false;
+        }
+    }
+    
     private static Tiles.Type getRandomBackground(final Random random)
     {
         List<Tiles.Type> options = new ArrayList<>();
         
-        options.add(Tiles.Type.BackgroundPlant);
-        options.add(Tiles.Type.Background1);
-        options.add(Tiles.Type.Background2);
+        for (int i = 0; i < Tiles.Type.values().length; i++)
+        {
+            if (isBackgroundTile(Tiles.Type.values()[i]))
+                options.add(Tiles.Type.values()[i]);
+        }
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
@@ -271,6 +384,13 @@ public class LevelCreatorHelper
         options.add(Tiles.Type.BiggerBlock2);
         options.add(Tiles.Type.BiggerBlock3);
         options.add(Tiles.Type.BiggerBlock4);
+        options.add(Tiles.Type.BiggerBlock5);
+        options.add(Tiles.Type.BiggerBlock6);
+        options.add(Tiles.Type.BiggerBlock7);
+        options.add(Tiles.Type.BiggerBlock8);
+        options.add(Tiles.Type.BiggerBlock9);
+        options.add(Tiles.Type.BiggerBlock10);
+        options.add(Tiles.Type.BiggerBlock11);
         
         options.add(Tiles.Type.VerticalPipe1);
         options.add(Tiles.Type.VerticalPipe2);
@@ -283,6 +403,25 @@ public class LevelCreatorHelper
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
+    }
+    
+    /**
+     * Place the switch where the goal will be
+     * @param level Our level object used to determine the (x,y) coordinates
+     * @param tiles The object that contains all of the level's tiles
+     */
+    public static void createGoal(final Level level, final Tiles tiles)
+    {
+        //locate the col, row in the array
+        final int col = tiles.getColumns() - (Level.LEVEL_COLUMNS_PER_SCREEN / 2);
+        final int row = tiles.getFloorRow() - 1;
+        
+        //locate x,y coordinates 
+        final int x = level.getX(col);
+        final int y = level.getY(row);
+        
+        //add goal switch
+        tiles.add(Tiles.Type.Goal, col, row, x, y);
     }
     
     /**
@@ -641,13 +780,13 @@ public class LevelCreatorHelper
             //choose at random to skip
             if (random.nextInt(ADD_BACKGROUNDS_PROBABILITY) != 0)
                 continue;
-            
+
             //get random obstacle
             Tiles.Type type = getRandomBackground(random);
-            
+
             //determine where item will be placed
             final int placeRow = tiles.getFloorRow() - type.getRowDimensions();
-            
+
             if (tiles.hasRange(type, col, placeRow))
             {
                 //make sure tiles below are occupied before we add background
@@ -723,7 +862,7 @@ public class LevelCreatorHelper
                 continue;
             
             //row where we want to place blocks at
-            final int placeRow = random.nextInt(tiles.getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
+            final int placeRow = random.nextInt(tiles.getFloorRow() - (MIN_BLOCKS_SPACE-1)) + MIN_BLOCKS_SPACE + 1;
             
             //how many we want to add
             final int total = random.nextInt(MAX_BLOCKS_ADD) + 1;
@@ -731,8 +870,20 @@ public class LevelCreatorHelper
             //is this a valid place to put blocks
             boolean valid = true;
             
+            final Tiles.Type type;
+            
             //determine the type of block added
-            final Tiles.Type type = (random.nextBoolean()) ? Tiles.Type.BreakableBrick : Tiles.Type.QuestionBlock;
+            switch (random.nextInt(3))
+            {
+                case 0:
+                    type = Tiles.Type.BreakableBrick;
+                    break;
+                    
+                //here we have a greater chance of a question block
+                default:
+                    type = Tiles.Type.QuestionBlock;
+                    break;
+            }
             
             for (int i = 0; i < MIN_BLOCKS_SPACE; i++)
             {
@@ -791,36 +942,48 @@ public class LevelCreatorHelper
             final int placeRow = random.nextInt(tiles.getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
             
             //how many we want to add
-            final int total = random.nextInt(MAX_BLOCKS_ADD) + 1;
+            final int totalCols = random.nextInt(MAX_COIN_COLS_ADD) + 1;
             
-            //is this a valid place to put blocks
+            //how many rows we want to add
+            final int totalRows = random.nextInt(MAX_COIN_ROWS_ADD) + 1;
+            
+            //is this a valid place to put coins
             boolean valid = true;
             
-            for (int z = 0; z < total; z++)
+            for (int i = 0; i < totalRows; i++)
             {
-                //we can't place coins if the space is occupied
-                if (tiles.hasTile(col + z, placeRow))
+                for (int z = 0; z < totalCols; z++)
                 {
-                    valid = false;
-                    break;
+                    //check the current tule
+                    Tile tile = tiles.getTile(col + z, placeRow + i);
+                    
+                    if (tile != null && !LevelCreatorHelper.isBackgroundTile(tile) && !LevelCreatorHelper.isCloudTile(tile))
+                    {
+                        //we can't place coins if the space is occupied with solid objects
+                        valid = false;
+                        break;
+                    }
                 }
             }
             
             if (!valid)
                 continue;
             
-            for (int z = 0; z < total; z++)
+            for (int i = 0; i < totalRows; i++)
             {
-                //locate x,y coordinates for the tile
-                int x = level.getX(col + z);
-                int y = level.getY(placeRow);
-                
-                //add coin
-                powerUps.add(PowerUps.Type.Coin, x, y);
+                for (int z = 0; z < totalCols; z++)
+                {
+                    //locate x,y coordinates for the tile
+                    int x = level.getX(col + z);
+                    int y = level.getY(placeRow + i);
+
+                    //add coin
+                    powerUps.add(PowerUps.Type.Coin, x, y, y);
+                }
             }
             
             //skip columns
-            col += (total - 1);
+            col += (totalCols - 1);
         }
     }
 }

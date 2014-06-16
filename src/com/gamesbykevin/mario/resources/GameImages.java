@@ -16,7 +16,7 @@ public final class GameImages extends ImageManager
      */
     public enum Keys
     {
-        MarioSpriteSheet, LevelTiles, LevelBackgrounds, PowerUps
+        MarioSpriteSheet, LevelTiles, LevelBackgrounds, PowerUps, Effects
     }
     
     public GameImages() throws Exception

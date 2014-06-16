@@ -1,14 +1,22 @@
 package com.gamesbykevin.mario.heroes;
 
+import com.gamesbykevin.framework.util.Timers;
+
 import com.gamesbykevin.mario.character.Character;
+import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.powerups.PowerUps;
-import com.gamesbykevin.mario.level.tiles.Tile;
+import com.gamesbykevin.mario.level.tiles.*;
+import com.gamesbykevin.mario.level.tiles.Tiles.Type;
 import com.gamesbykevin.mario.shared.IElement;
 
+import java.awt.image.BufferedImage;
+import java.awt.AlphaComposite;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.util.Random;
 
 public abstract class Hero extends Character implements IElement 
 {
@@ -18,11 +26,51 @@ public abstract class Hero extends Character implements IElement
     //by default the hero doesn't have fire
     private boolean fire = false;
     
-    //store the previous jump state
+    //by default the hero won't be invincible
+    private boolean invincible = false;
+    
+    //by default the hero won't be hurt
+    private boolean hurt = false;
+    
+    //store if we are jumping
     private boolean jumping = false;
+    
+    //the fireball mario can fire
+    private Projectile fireball;
+    
+    //our invincible image
+    private BufferedImage invincibleImage;
+    
+    //our transparent image
+    private BufferedImage transparentImage;
     
     private static final double SCROLL_WEST_RATIO = .25;
     private static final double SCROLL_EAST_RATIO = .65;
+    
+    /**
+     * What are the chances hitting this block is a power up
+     */
+    private static final int BLOCK_POWER_UP_PROBABILITY = 5;
+    
+    //how long to wait until switching to other image
+    private static final long INVINCIBLE_IMAGE_SWITCH_DELAY = Timers.toNanoSeconds(100L);
+    
+    //how long the hero will be invincible for
+    private static final long INVINCIBLE_DELAY = Timers.toNanoSeconds(10000L);
+    
+    //how long will mario be hurt before receiving damage again
+    private static final long HURT_DELAY = Timers.toNanoSeconds(5000L);
+    
+    private enum TimerKey
+    {
+        ImageSwitch, InvincibilityDuration, Hurt
+    }
+    
+    //do we switch between images
+    private boolean switchImage = false;
+    
+    //this object will keep track of multiple time(s)
+    private Timers timers;
     
     /**
      * The different animations for the hero
@@ -30,7 +78,7 @@ public abstract class Hero extends Character implements IElement
     public enum State
     {
         //all of the different things we can do while small
-        SmallMiniMap, SmallIdle, SmallWalk, SmallRun, SmallDeath, SmallJump,  
+        SmallMiniMap, SmallIdle, SmallWalk, SmallRun, SmallDeath, SmallJump, 
         
         //the things we can do while big
         BigMiniMap, BigIdle, BigWalk, BigRun, BigJump, BigDuck, 
@@ -38,13 +86,58 @@ public abstract class Hero extends Character implements IElement
         //the things we can do while big fire
         FireMiniMap, FireIdle, FireWalk, FireRun, FireJump, FireDuck, FireAttack,
         
-        //the fireball animation
-        Fireball
+        //the projectile
+        Fireball,
+        
+        //mario dead
+        Dead, 
     }
     
     protected Hero()
     {
         super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_WALK, Character.DEFAULT_SPEED_RUN);
+    }
+    
+    /**
+     * Create the alternate images for the hero (invincible, hurt, etc...)
+     */
+    public void createMiscImages()
+    {
+        try
+        {
+            //create new image
+            this.invincibleImage = new BufferedImage(getImage().getWidth(null), getImage().getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            
+            //get graphics object to write
+            Graphics2D g2d = this.invincibleImage.createGraphics();
+            
+            //write original spritesheet to this image
+            g2d.drawImage(getImage(), 0, 0, null);
+            
+            for (int x = 0; x < invincibleImage.getWidth(); x++) 
+            {
+                for (int y = 0; y < invincibleImage.getHeight(); y++) 
+                {
+                    invincibleImage.setRGB(x, y, invincibleImage.getRGB(x, y) & 0xff00ff00);
+                }
+            }
+            
+            //create new image
+            this.transparentImage = new BufferedImage(getImage().getWidth(null), getImage().getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            
+            //get the graphics object to write
+            g2d = this.transparentImage.createGraphics();
+            
+            //set transparency for this image
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+            
+            //write original spritesheet to this image
+            g2d.drawImage(getImage(), 0, 0, null);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
     
     public State getDefaultAnimation()
@@ -73,6 +166,11 @@ public abstract class Hero extends Character implements IElement
             //we have fire so set accordingly
             setAnimation(State.FireAttack, false);
         }
+    }
+    
+    public void setAnimationDead()
+    {
+        setAnimation(State.Dead, false);
     }
     
     public void setAnimationDuck()
@@ -188,6 +286,31 @@ public abstract class Hero extends Character implements IElement
         }
     }
     
+    public void setInvincible(final boolean invincible)
+    {
+        this.invincible = invincible;
+        
+        if (invincible)
+        {
+            setHurt(false);
+        }
+    }
+    
+    public boolean isHurt()
+    {
+        return this.hurt;
+    }
+    
+    public void setHurt(final boolean hurt)
+    {
+        this.hurt = hurt;
+    }
+    
+    public boolean isInvincible()
+    {
+        return this.invincible;
+    }
+    
     public void setBig(final boolean big)
     {
         this.big = big;
@@ -208,36 +331,126 @@ public abstract class Hero extends Character implements IElement
         return this.fire;
     }
     
+    public boolean hasFireball()
+    {
+        return (fireball != null);
+    }
+    
+    private void removeFireball()
+    {
+        this.fireball = null;
+        this.setAttack(false);
+    }
+    
+    private void setupTimers(final long time)
+    {
+        this.timers = new Timers(time);
+        this.timers.add(TimerKey.ImageSwitch, INVINCIBLE_IMAGE_SWITCH_DELAY);
+        this.timers.add(TimerKey.InvincibilityDuration, INVINCIBLE_DELAY);
+        this.timers.add(TimerKey.Hurt, HURT_DELAY);
+        this.timers.reset();
+    }
+    
+    private void updateTimers()
+    {
+        //update timers when invincible
+        if (isInvincible())
+        {
+            if (timers.hasTimePassed(TimerKey.ImageSwitch))
+            {
+                //flip images
+                this.switchImage = !switchImage;
+
+                //reset timer
+                timers.reset(TimerKey.ImageSwitch);
+            }
+            else
+            {
+                //update timer
+                timers.update(TimerKey.ImageSwitch);
+            }
+
+            if (timers.hasTimePassed(TimerKey.InvincibilityDuration))
+            {
+                //no longer invincible
+                this.setInvincible(false);
+
+                //back to default image
+                this.switchImage = false;
+
+                //reset timer
+                timers.reset(TimerKey.InvincibilityDuration);
+            }
+            else
+            {
+                //update timer
+                timers.update(TimerKey.InvincibilityDuration);
+            }
+        }
+        
+        if (isHurt())
+        {
+            if (timers.hasTimePassed(TimerKey.Hurt))
+            {
+                //we are no longer hurt
+                setHurt(false);
+                
+                //reser timer
+                timers.reset(TimerKey.Hurt);
+            }
+            else
+            {
+                //update timer
+                timers.update(TimerKey.Hurt);
+            }
+        }
+    }
+    
     @Override
     public void update(final Engine engine)
     {
+        if (timers == null)
+            setupTimers(engine.getMain().getTime());
+        
+        //update our timers
+        updateTimers();
+        
+        //are we currently jumping/falling
+        this.jumping = super.isJumping();
+        
         //update parent entity
         super.update(engine.getMain().getTime());
         
         //update location
         super.update();
-
-        //are we currently jumping/falling
-        this.jumping = super.isJumping();
         
         //apply gravity
-        super.applyGravity(engine.getManager().getLevel().getTiles());
+        applyGravity(engine.getManager().getLevel().getTiles());
         
-        //check for collision to the north first
-        Tile n = checkCollisionNorth(engine.getManager().getLevel().getTiles());
+        //manage the heroes collision with the level
+        manageLevelCollision(engine.getManager().getLevel(), engine.getRandom());
         
-        //no collision found north, now check the rest
-        if (n == null)
+        //if the hero is off the screen, we are dead
+        if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
+            markDead();
+        
+        if (hasFireball())
         {
-            Tile west       = checkCollisionWest(engine.getManager().getLevel().getTiles());
-            Tile northWest  = checkCollisionNorthWest(engine.getManager().getLevel().getTiles());
-            Tile east       = checkCollisionEast(engine.getManager().getLevel().getTiles());
-            Tile northEast  = checkCollisionNorthEast(engine.getManager().getLevel().getTiles());
-            Tile south      = checkCollisionSouth(engine.getManager().getLevel().getTiles());
+            fireball.update(engine.getMain().getTime());
+            fireball.update();
+            fireball.applyGravity(engine.getManager().getLevel().getTiles());
+            fireball.manageLevelCollision(engine.getManager().getLevel(), engine.getRandom());
+            
+            //flag fireball as dead if no longer on the screen
+            if (!engine.getManager().getWindow().contains(fireball.getCenter()))
+                fireball.markDead();
+            
+            if (fireball.isDead())
+                removeFireball();
         }
         
         //manage power up collision
-        managePowerUp(engine.getManager().getLevel().getPowerUpCollision(this));
+        managePowerUp(engine.getManager().getLevel().getPowerUpCollision(this), engine.getManager().getLevel().getTiles());
         
         //make sure correct animation is set
         checkAnimation();
@@ -245,8 +458,261 @@ public abstract class Hero extends Character implements IElement
         //check if we are to scroll the level
         checkScroll(engine.getManager().getLevel(), engine.getManager().getWindow());
     }
+    
+    private void manageLevelCollision(final Level level, final Random random)
+    {
+        Tiles tiles = level.getTiles();
         
-    private void managePowerUp(final PowerUps.Type type)
+        PowerUps powerUps = level.getPowerUps();
+        
+        //check for collision to the north first
+        Tile north = checkCollisionNorth(tiles);
+        
+        //no collision was found north, now check the rest
+        if (north == null || !isJumping())
+        {
+            if (getVelocityX() < 0)
+            {
+                Tile west = checkCollisionWest(tiles);
+                
+                if (west != null)
+                {
+                    setVelocityX(SPEED_NONE);
+                    
+                    if (!isInvincible())
+                    {
+                        if (west.hasDamage())
+                        {
+                            switch (west.getType())
+                            {
+                                case RotatingGear:
+                                case RotatingGear2:
+                                    markHurt();
+                                    break;
+                            }
+                        }
+                    }
+                }
+                
+                if (checkCollisionNorthWest(tiles) != null)
+                    setVelocityX(SPEED_NONE);
+            }
+            
+            if (getVelocityX() > 0)
+            {
+                Tile east = checkCollisionEast(tiles);
+                
+                //if collision with east
+                if (east != null)
+                {
+                    setVelocityX(SPEED_NONE);
+                    
+                    if (!isInvincible())
+                    {
+                        if (east.hasDamage())
+                        {
+                            switch (east.getType())
+                            {
+                                case RotatingGear:
+                                    markHurt();
+                                    break;
+                            }
+                        }
+                    }
+                }
+                
+                if (checkCollisionNorthEast(tiles) != null)
+                    setVelocityX(SPEED_NONE);
+            }
+            
+            Tile south = checkCollisionSouth(tiles);
+            
+            //if we hit a tile at our feet, make sure to stop
+            if (south != null)
+            {
+                if (super.isJumping())
+                    super.stopJumping();
+                
+                if (!isInvincible())
+                {
+                    if (south.hasDeath())
+                    {
+                        switch (south.getType())
+                        {
+                            case Lava:
+                            case Water1:
+                            case Water2:
+                                markDead();
+                                setY(south.getY() - Tile.HEIGHT);
+                                break;
+                        }
+                    }
+                    else if (south.hasDamage())
+                    {
+                        switch (south.getType())
+                        {
+                            case RotatingGear:
+                            case SpikesUp1:
+                            case SpikesUp2:
+                                markHurt();
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            //if moving north check if the tile will hurt
+            if (getVelocityY() < 0)
+            {
+                //also start falling down
+                setVelocityY(VELOCITY_DECREASE);
+                
+                //if the block can cause death
+                if (north.hasDeath())
+                {
+                    if (!isHurt())
+                    {
+                        //mark the hero as dead
+                        markDead();
+                    }
+                }
+                else if (north.hasDamage())
+                {
+                    if (!isHurt())
+                    {
+                        //mark the hero hurt
+                        markHurt();
+                    }
+                }
+            }
+            
+            switch (north.getType())
+            {
+                case QuestionBlock:
+                    tiles.add(Tiles.Type.UsedBlock, north.getCol(), north.getRow(), north.getX(), north.getY());
+                    
+                    //choose at random if we are to add a power up, that is not a coin
+                    if (random.nextInt(BLOCK_POWER_UP_PROBABILITY) == 0)
+                    {
+                        //the block can do two different things
+                        if (random.nextBoolean())
+                        {
+                            //determine mario power up
+                            if (!isBig())
+                            {
+                                //if not big it will be a mushroom
+                                powerUps.add(PowerUps.Type.Mushroom, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                            }
+                            else
+                            {
+                                //if not big it will be a fire flower
+                                powerUps.add(PowerUps.Type.Flower, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                            }
+                        }
+                        else
+                        {
+                            //choose star
+                            powerUps.add(PowerUps.Type.Star, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                        }
+                    }
+                    else
+                    {
+                        //need to add animation effect of collecting a coin here
+                        level.getEffects().add(north.getX(), north.getY() - north.getHeight(), Effects.Type.CollectCoin);
+                    }
+                    break;
+                    
+                case BreakableBrick:
+                    
+                    //can only break a brick if big or has fire
+                    if (isBig() || this.hasFire())
+                    {
+                        //remove tile
+                        tiles.remove((int)north.getCol(), (int)north.getRow());
+                        
+                        //need to add animation effect of brick breaking here
+                        level.getEffects().add(north, Effects.Type.BreakBrick);
+                    }
+                    break;
+            }
+        }
+    }
+    
+    /**
+     * Mark the hero as hurt, if the hero is invincible or already hurt nothing will happen here.
+     */
+    private void markHurt()
+    {
+        //make sure we are not invincible
+        if (!isInvincible())
+        {
+            //also make sure we are not hurt
+            if (!isHurt())
+            {
+                //flag hurt 
+                setHurt(true);
+
+                //reset timer
+                timers.reset(TimerKey.Hurt);
+
+                //downgrade the hero
+                if (hasFire())
+                {
+                    //if fire then downgrade
+                    setFire(false);
+                    setBig(true);
+                }
+                else if (isBig())
+                {
+                    //if big then downgrade
+                    setFire(false);
+                    setBig(false);
+                }
+                else
+                {
+                    //if small then dead
+                    markDead();
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void markDead()
+    {
+        //flag as dead
+        super.markDead();
+
+        //set the appropriate flags
+        setFire(false);
+        setBig(false);
+
+        //stop moving
+        resetVelocity();
+    }
+    
+    public void addFireball()
+    {
+        this.fireball = new Projectile();
+        
+        if (hasHorizontalFlip())
+        {
+            this.fireball.setLocation(getX() - fireball.getWidth(), getY());
+            this.fireball.setVelocityX(-Projectile.DEFAULT_VELOCITY_X);
+        }
+        else
+        {
+            this.fireball.setLocation(getX() + getWidth(), getY());
+            this.fireball.setVelocityX(Projectile.DEFAULT_VELOCITY_X);
+        }
+        
+        this.fireball.setVelocityY(Projectile.DEFAULT_VELOCITY_Y);
+        this.fireball.startJump();
+    }
+        
+    private void managePowerUp(final PowerUps.Type type, final Tiles tiles)
     {
         try
         {
@@ -258,25 +724,39 @@ public abstract class Hero extends Character implements IElement
                 case Mushroom:
                     setBig(true);
                     setAnimation(getDefaultAnimation(), false);
+                    setDimensions();
+                    
+                    Tile south = checkCollisionSouth(tiles);
+            
+                    //correct mario y location
+                    if (south != null)
+                        setY(south.getY() - getHeight());
                     break;
                     
                 case Flower:
                     setBig(true);
                     setFire(true);
                     setAnimation(getDefaultAnimation(), false);
+                    setDimensions();
+                    
+                    south = checkCollisionSouth(tiles);
+            
+                    //correct mario y location
+                    if (south != null)
+                        setY(south.getY() - getHeight());
                     break;
                     
                 case Star:
-                    System.out.println("Collected: " + type.toString());
                     setAnimation(getDefaultAnimation(), false);
+                    
+                    //flag invincible
+                    setInvincible(true);
+                    
+                    //reset invincible timers
+                    timers.reset();
                     break;
                     
                 case Coin:
-                    System.out.println("Collected: " + type.toString());
-                    break;
-                    
-                case CoinSwitch:
-                    System.out.println("Collected: " + type.toString());
                     break;
             }
         }
@@ -359,11 +839,47 @@ public abstract class Hero extends Character implements IElement
                 setAnimationJump();
             }
         }
+        
+        //if we are dead, we are dead!
+        if (isDead())
+            setAnimationDead();
+        
+        //auto set the dimensions based on current animation
+        super.setDimensions();
     }
     
     @Override
     public void render(final Graphics graphics)
     {
-        super.draw(graphics);
+        if (isInvincible())
+        {
+            //we will alternate between the images when invincible
+            if (switchImage)
+            {
+                //draw same image with bitmask applied
+                super.draw(graphics, invincibleImage);
+            }
+            else
+            {
+                //draw default image
+                super.draw(graphics);
+            }
+        }
+        else if (isDead())
+        {
+            super.draw(graphics);
+        }
+        else if (isHurt())
+        {
+            super.draw(graphics, transparentImage);
+        }
+        else
+        {
+            super.draw(graphics);
+        }
+        
+        
+        if (hasFireball())
+            fireball.draw(graphics, getImage());
     }
 }

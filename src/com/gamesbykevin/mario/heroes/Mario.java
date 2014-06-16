@@ -8,9 +8,6 @@ public final class Mario extends Hero
     private static final int BIG_MARIO_WIDTH = 16;
     private static final int BIG_MARIO_HEIGHT = 31;
     
-    private static final int FIREBALL_WIDTH = 8;
-    private static final int FIREBALL_HEIGHT = 9;
-    
     /**
      * here we will setup the animations
      */
@@ -75,10 +72,8 @@ public final class Mario extends Hero
         //fire mario attacking
         super.addAnimation(State.FireAttack, 1, 128, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);
         
-        
-        //fireball
-        super.addAnimation(State.Fireball, 4, 0, 80, FIREBALL_WIDTH, FIREBALL_HEIGHT, DEFAULT_DELAY, true);
-        
+        //add death sprite
+        super.addAnimation(State.Dead, 1, 112, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
         
         //set default animation
         super.setAnimation(getDefaultAnimation(), true);
