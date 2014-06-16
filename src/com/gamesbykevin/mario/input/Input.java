@@ -26,8 +26,8 @@ public final class Input
         //get mario object
         final Hero mario = engine.getManager().getMario();
         
-        //if the hero is dead, don't continue
-        if (mario.isDead())
+        //if the hero is dead or has victory, don't continue
+        if (mario.isDead() || mario.hasVictory())
         {
             //stop the hero from moving
             mario.resetVelocity();

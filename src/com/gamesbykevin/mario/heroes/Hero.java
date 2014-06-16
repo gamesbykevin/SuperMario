@@ -35,6 +35,9 @@ public abstract class Hero extends Character implements IElement
     //store if we are jumping
     private boolean jumping = false;
     
+    //has the hero solved the puzzle
+    private boolean victory = false;
+    
     //the fireball mario can fire
     private Projectile fireball;
     
@@ -78,13 +81,13 @@ public abstract class Hero extends Character implements IElement
     public enum State
     {
         //all of the different things we can do while small
-        SmallMiniMap, SmallIdle, SmallWalk, SmallRun, SmallDeath, SmallJump, 
+        SmallMiniMap, SmallIdle, SmallWalk, SmallRun, SmallJump, SmallVictory, 
         
         //the things we can do while big
-        BigMiniMap, BigIdle, BigWalk, BigRun, BigJump, BigDuck, 
+        BigMiniMap, BigIdle, BigWalk, BigRun, BigJump, BigDuck, BigVictory, 
         
         //the things we can do while big fire
-        FireMiniMap, FireIdle, FireWalk, FireRun, FireJump, FireDuck, FireAttack,
+        FireMiniMap, FireIdle, FireWalk, FireRun, FireJump, FireDuck, FireAttack, FireVictory, 
         
         //the projectile
         Fireball,
@@ -171,6 +174,25 @@ public abstract class Hero extends Character implements IElement
     public void setAnimationDead()
     {
         setAnimation(State.Dead, false);
+    }
+    
+    public void setAnimationVictory()
+    {
+        if (!isBig())
+        {
+            //set accordingly
+            setAnimation(State.SmallVictory, false);
+        }
+        else if (hasFire())
+        {
+            //we have fire so set accordingly
+            setAnimation(State.FireVictory, false);
+        }
+        else
+        {
+            //we are just big so set accordingly
+            setAnimation(State.BigVictory, false);
+        }
     }
     
     public void setAnimationDuck()
@@ -319,6 +341,16 @@ public abstract class Hero extends Character implements IElement
     public boolean isBig()
     {
         return this.big;
+    }
+    
+    public void setVictory(final boolean victory)
+    {
+        this.victory = victory;
+    }
+    
+    public boolean hasVictory()
+    {
+        return this.victory;
     }
     
     public void setFire(final boolean fire)
@@ -544,6 +576,9 @@ public abstract class Hero extends Character implements IElement
                     
                     //mark level as complete
                     level.setComplete(true);
+                    
+                    //set animation
+                    setVictory(true);
                 }
                 
                 if (!isInvincible())
@@ -857,6 +892,9 @@ public abstract class Hero extends Character implements IElement
         //if we are dead, we are dead!
         if (isDead())
             setAnimationDead();
+        
+        if (hasVictory())
+            setAnimationVictory();
         
         //auto set the dimensions based on current animation
         super.setDimensions();

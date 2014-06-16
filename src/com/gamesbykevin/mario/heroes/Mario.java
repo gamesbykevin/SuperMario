@@ -28,9 +28,9 @@ public final class Mario extends Hero
         //small mario jumping
         super.addAnimation(State.SmallJump, 2, 64, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
-        //small mario dead
-        super.addAnimation(State.SmallDeath, 1, 112, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
-        
+        //small mario victory
+        super.addAnimation(State.SmallVictory, 1, 128, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
+
         
         //big mario on the mini map
         super.addAnimation(State.BigMiniMap, 2, 0, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, true);
@@ -49,6 +49,9 @@ public final class Mario extends Hero
         
         //big mario ducking
         super.addAnimation(State.BigDuck, 1, 112, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        
+        //big mario victory
+        super.addAnimation(State.BigVictory, 1, 128, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
         
         
         //fire mario on the mini map
@@ -71,6 +74,10 @@ public final class Mario extends Hero
         
         //fire mario attacking
         super.addAnimation(State.FireAttack, 1, 128, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);
+        
+        //fire mario victory
+        super.addAnimation(State.FireVictory, 1, 144, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        
         
         //add death sprite
         super.addAnimation(State.Dead, 1, 112, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
