@@ -27,6 +27,10 @@ public final class Tile extends Entity implements Disposable
         super.setDimensions(WIDTH, HEIGHT);
         
         this.type = type;
+        
+        this.setDamage(type.hasDamage());
+        this.setSolid(type.isSolid());
+        this.setDeath(type.hasDeath());
     }
     
     public Type getType()

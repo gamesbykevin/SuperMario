@@ -41,13 +41,26 @@ public final class Level implements Disposable, IElement
     
     //the effects
     private Effects effects;
-        
+    
+    //is the level complete
+    private boolean complete = false;
+    
     /**
      * Create a new level
      */
     public Level()
     {
         
+    }
+    
+    public boolean isComplete()
+    {
+        return this.complete;
+    }
+    
+    public void setComplete(final boolean complete)
+    {
+        this.complete = complete;
     }
     
     /**

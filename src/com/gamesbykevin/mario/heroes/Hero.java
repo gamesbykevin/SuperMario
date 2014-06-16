@@ -514,6 +514,7 @@ public abstract class Hero extends Character implements IElement
                             switch (east.getType())
                             {
                                 case RotatingGear:
+                                case RotatingGear2:
                                     markHurt();
                                     break;
                             }
@@ -532,6 +533,18 @@ public abstract class Hero extends Character implements IElement
             {
                 if (super.isJumping())
                     super.stopJumping();
+                
+                if (south.getType() == Tiles.Type.Goal)
+                {
+                    //remove goal tile
+                    tiles.remove((int)south.getCol(), (int)south.getRow());
+                    
+                    //set as complete
+                    tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
+                    
+                    //mark level as complete
+                    level.setComplete(true);
+                }
                 
                 if (!isInvincible())
                 {
@@ -552,6 +565,7 @@ public abstract class Hero extends Character implements IElement
                         switch (south.getType())
                         {
                             case RotatingGear:
+                            case RotatingGear2:
                             case SpikesUp1:
                             case SpikesUp2:
                                 markHurt();
@@ -592,7 +606,7 @@ public abstract class Hero extends Character implements IElement
             {
                 case QuestionBlock:
                     tiles.add(Tiles.Type.UsedBlock, north.getCol(), north.getRow(), north.getX(), north.getY());
-                    
+
                     //choose at random if we are to add a power up, that is not a coin
                     if (random.nextInt(BLOCK_POWER_UP_PROBABILITY) == 0)
                     {
