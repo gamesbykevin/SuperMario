@@ -5,7 +5,6 @@ import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.LevelCreatorHelper;
-import com.gamesbykevin.mario.level.powerups.PowerUps;
 
 import java.awt.Graphics;
 import java.awt.Image;
@@ -291,6 +290,38 @@ public final class Tiles implements Disposable
     public int getFloorRow()
     {
         return (getRows() - 2);
+    }
+    
+    /**
+     * Check if there is a floor at the specified x-coordinate
+     * @param x x-coordinate we want to check
+     * @return true if there is a floor at the x-coordinate, false otherwise
+     */
+    public boolean hasFloorBelow(final double x)
+    {
+        for (int col = 0; col < tiles[getFloorRow()].length; col++)
+        {
+            //if there is no tile here skip
+            if (!hasTile(col, getFloorRow()))
+                continue;
+
+            //get the floor tile at the current column
+            Tile tile = getTile(col, getFloorRow());
+
+            //can't check if tile doesn't exist
+            if (tile == null)
+                continue;
+            
+            //if the x-coordinate is not inside the tile skip
+            if (x < tile.getX() || x > tile.getX() + tile.getWidth())
+                continue;
+            
+            //we found the floor below
+            return true;
+        }
+        
+        //we didn't find a floor below
+        return false;
     }
     
     /**
@@ -953,34 +984,34 @@ public final class Tiles implements Disposable
      * @param level The current level object used to locate x,y placement/render coordinates
      * @param random Object used to make random decisions
      */
-    public void populate(final Level level, final PowerUps powerUps, final Random random)
+    public void populate(final Level level, final Random random)
     {
         //create the floor first
-        LevelCreatorHelper.createFloor(level, this, random);
+        LevelCreatorHelper.createFloor(level, random);
         
         //now place some obstacles
-        LevelCreatorHelper.createCollisionObstacles(level, this, random);
+        LevelCreatorHelper.createCollisionObstacles(level, random);
         
         //now lets place some platforms
-        LevelCreatorHelper.createPlatforms(level, this, random);
+        LevelCreatorHelper.createPlatforms(level, random);
         
         //here we will place breakable bricks and power blocks
-        LevelCreatorHelper.createBlocks(level, this, random);
+        LevelCreatorHelper.createBlocks(level, random);
         
         //now lets place some backgrounds
-        LevelCreatorHelper.createBackgrounds(level, this, random);
+        LevelCreatorHelper.createBackgrounds(level, random);
         
         //now lets place some clouds
-        LevelCreatorHelper.createClouds(level, this, random);
+        LevelCreatorHelper.createClouds(level, random);
         
         //now lets place some deadly obstacles
-        LevelCreatorHelper.createDeadlyObstacles(level, this, random);
+        LevelCreatorHelper.createDeadlyObstacles(level, random);
         
         //place coins in the level
-        LevelCreatorHelper.placeCoins(level, this, powerUps, random);
+        LevelCreatorHelper.placeCoins(level, random);
         
         //place switch which will represent the goal
-        LevelCreatorHelper.createGoal(level, this);
+        LevelCreatorHelper.createGoal(level);
         
         try
         {

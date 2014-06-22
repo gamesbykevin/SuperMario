@@ -13,6 +13,8 @@ public final class Background extends Entity implements Disposable
     private static final int WIDTH = 256;
     private static final int HEIGHT = 192;
     
+    private final Type type;
+    
     public enum Type
     {
         Background01(0, 0), Background02(1, 0), Background03(2, 0), Background04(3, 0), 
@@ -45,6 +47,8 @@ public final class Background extends Entity implements Disposable
         //store the background image
         super.setImage(image);
         
+        this.type = type;
+        
         switch (type)
         {
             
@@ -68,6 +72,11 @@ public final class Background extends Entity implements Disposable
                 super.setDimensions(WIDTH, HEIGHT);
                 break;
         }
+    }
+    
+    public Type getType()
+    {
+        return this.type;
     }
     
     public void update(final int repeatLeft, final int repeatRight, final long time)

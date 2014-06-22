@@ -4,6 +4,7 @@ import com.gamesbykevin.framework.input.Keyboard;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.projectiles.HeroFireball;
 
 import java.awt.event.KeyEvent;
 
@@ -26,13 +27,9 @@ public final class Input
         //get mario object
         final Hero mario = engine.getManager().getMario();
         
-        //if the hero is dead or has victory, don't continue
-        if (mario.isDead() || mario.hasVictory())
-        {
-            //stop the hero from moving
-            mario.resetVelocity();
+        //if mario completed the level or has died, prevent movement
+        if (mario.hasVictory() || mario.isDead())
             return;
-        }
         
         //get keyboard input
         final Keyboard keyboard = engine.getKeyboard();
@@ -172,10 +169,9 @@ public final class Input
         
         if (keyboard.hasKeyPressed(KEY_FIREBALL))
         {
-            if (!mario.isDucking() && mario.hasFire() && !mario.hasFireball())
+            if (!mario.isDucking() && mario.hasFire() && mario.canThrowProjectile())
             {
                 mario.setAttack(true);
-                mario.addFireball();
             }
         }
         
@@ -184,7 +180,11 @@ public final class Input
         {
             if (mario.isAttacking())
             {
+                //no longer attacking
                 mario.setAttack(false);
+                
+                //add fireball
+                mario.addProjectile(new HeroFireball());
                 
                 //make sure mario can walk afterwards
                 if (!mario.isWalking() || !mario.isJumping() || !mario.isRunning())

@@ -8,10 +8,22 @@ public final class Mario extends Hero
     private static final int BIG_MARIO_WIDTH = 16;
     private static final int BIG_MARIO_HEIGHT = 31;
     
-    /**
-     * here we will setup the animations
-     */
+    private static final int PROJECTILE_LIMIT = 1;
+    
     public Mario()
+    {
+        //the numeber of projectiles allowed at once
+        super.setProjectileLimit(PROJECTILE_LIMIT);
+        
+        //we are weak towards projectiles
+        super.setWeaknessProjectile(true);
+    }
+    
+    /**
+     * Setup the animations
+     */
+    @Override
+    protected void defineAnimations()
     {
         //small mario on the mini map
         super.addAnimation(State.SmallMiniMap, 2, 0, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, true);
@@ -73,7 +85,7 @@ public final class Mario extends Hero
         super.addAnimation(State.FireDuck, 1, 112, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
         
         //fire mario attacking
-        super.addAnimation(State.FireAttack, 1, 128, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);
+        super.addAnimation(State.FireAttack, 1, 128, 48, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);
         
         //fire mario victory
         super.addAnimation(State.FireVictory, 1, 144, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
@@ -83,6 +95,6 @@ public final class Mario extends Hero
         super.addAnimation(State.Dead, 1, 112, 0, SMALL_MARIO_WIDTH, SMALL_MARIO_HEIGHT, DEFAULT_DELAY, false);
         
         //set default animation
-        super.setAnimation(getDefaultAnimation(), true);
+        super.setAnimation(AnimationHelper.getDefaultAnimation(this), true);
     }
 }

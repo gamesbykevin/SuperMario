@@ -25,7 +25,9 @@ public abstract class Entity extends Sprite implements Disposable
     //is this entity jumping/falling
     private boolean jump = false;
     
-    //no moving speed
+    /**
+     * No velocity
+     */
     protected static final int SPEED_NONE = 0;
     
     //determine when entity is dead (if applicable)
@@ -150,6 +152,16 @@ public abstract class Entity extends Sprite implements Disposable
     }
     
     /**
+     * Determine if the specified parameter is the current animation
+     * @param object The animation we are checking for
+     * @return true if the parameter object is the current animation, false otherwise
+     */
+    protected final boolean isAnimation(final Object object)
+    {
+        return (super.getSpriteSheet().getCurrent() == object);
+    }
+    
+    /**
      * Do we have the specified animation
      * @param object The animation we are looking for
      * @return true if animation is found, false otherwise
@@ -243,7 +255,8 @@ public abstract class Entity extends Sprite implements Disposable
     }
     
     /**
-     * Apply gravity to entity and check for collision while falling
+     * Check if the entity should be falling.<br>
+     * If there are no tiles below gravity will be applied
      * @param tiles The object containing all tiles in the level
      */
     public void applyGravity(final Tiles tiles)
@@ -257,6 +270,16 @@ public abstract class Entity extends Sprite implements Disposable
             //limit the fall rate
             if (getVelocityY() > getJumpVelocity())
                 setVelocityY(getJumpVelocity());
+            
+            try
+            {
+                if (getJumpVelocity() == 0)
+                    throw new Exception("Gravity can't be applied because the jump velocity is not set.");
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
         else
         {
@@ -266,7 +289,7 @@ public abstract class Entity extends Sprite implements Disposable
             //apply gravity temporary to check below tiles
             super.setY(y + VELOCITY_DECREASE);
 
-            //get the tile at the bottom
+            //get the tile below
             Tile tile = tiles.getTile(getSouthX(), getSouthY());
             
             //if there is no tile below or not solid
@@ -302,6 +325,83 @@ public abstract class Entity extends Sprite implements Disposable
         }
         
         return null;
+    }
+    
+    /**
+     * Check to see if the east side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the east side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionEast(final Entity entity)
+    {
+        return entity.getRectangle().contains(getEastX(), getEastY());
+    }
+    
+    /**
+     * Check to see if the west side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the west side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionWest(final Entity entity)
+    {
+        return entity.getRectangle().contains(getWestX(), getWestY());
+    }
+    
+    /**
+     * Check to see if the north side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the north side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionNorth(final Entity entity)
+    {
+        return entity.getRectangle().contains(getNorthX(), getNorthY());
+    }
+    
+    /**
+     * Check for collision at north-west, north, and north-east
+     * @param entity The entity we want to check
+     * @return true if the north side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionNorthAny(final Entity entity)
+    {
+        if (checkCollisionNorth(entity))
+            return true;
+        if (checkCollisionNorthWest(entity))
+            return true;
+        if (checkCollisionNorthEast(entity))
+            return true;
+        
+        return false;
+    }
+    
+    /**
+     * Check to see if the south side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the south side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionSouth(final Entity entity)
+    {
+        return entity.getRectangle().contains(getSouthX(), getSouthY());
+    }
+    
+    /**
+     * Check to see if the north-west side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the north-west side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionNorthWest(final Entity entity)
+    {
+        return entity.getRectangle().contains(getNorthWestX(), getNorthWestY());
+    }
+    
+    /**
+     * Check to see if the north-east side of this object intersects with the specified entity
+     * @param entity The entity we want to check
+     * @return true if the north-east side of this object collides with the parameter entity, false otherwise
+     */
+    public boolean checkCollisionNorthEast(final Entity entity)
+    {
+        return entity.getRectangle().contains(getNorthEastX(), getNorthEastY());
     }
     
     /**
@@ -357,17 +457,22 @@ public abstract class Entity extends Sprite implements Disposable
      */
     public Tile checkCollisionNorth(final Tiles tiles)
     {
-        //get the tile above the character's head
-        Tile tile = tiles.getTile(getNorthX(), getNorthY());
+        final int range = (int)(getWidth() / 4);
         
-        //if there is a tile, then there is collision
-        if (tile != null && tile.isSolid())
+        for (int x = -range; x <= range; x++)
         {
-            //place character right below tile
-            setY(tile.getY() + tile.getHeight());
-            
-            //return collision tile
-            return tile;
+            //get the tile above the character's head
+            Tile tile = tiles.getTile(getNorthX() + x, getNorthY());
+
+            //if there is a tile, then there is collision
+            if (tile != null && tile.isSolid())
+            {
+                //place character right below tile
+                setY(tile.getY() + tile.getHeight());
+
+                //return collision tile
+                return tile;
+            }
         }
         
         return null;
@@ -428,6 +533,16 @@ public abstract class Entity extends Sprite implements Disposable
     public void setJump(final boolean jump)
     {
         this.jump = jump;
+    }
+    
+    /**
+     * Does this entity collide with another?
+     * @param entity Entity we want to check for collision
+     * @return true if these objects touch each other, false otherwise
+     */
+    public final boolean hasCollision(final Entity entity)
+    {
+        return super.getRectangle().intersects(entity.getRectangle());
     }
     
     /**

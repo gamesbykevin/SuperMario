@@ -28,6 +28,9 @@ public class LevelCreatorHelper
      */
     private static final int MAX_COIN_ROWS_ADD = 3;
     
+    /**
+     * how many cols of coins can we add at once
+     */
     private static final int MAX_COIN_COLS_ADD = 9;
     
     /**
@@ -43,7 +46,7 @@ public class LevelCreatorHelper
     /**
      * Give each platform space between one another
      */
-    private static final int MIN_PLATFORM_SPACE = 3;
+    private static final int MIN_PLATFORM_SPACE = 4;
     
     /**
      * Give each collision obstacle space between one another
@@ -54,6 +57,16 @@ public class LevelCreatorHelper
      * The height of the platforms can vary
      */
     private static final int PLATFORM_HEIGHT_DIFFERENCE = 8;
+    
+    /**
+     * What are the chances hitting this block is a power up
+     */
+    private static final int BLOCK_POWER_UP_PROBABILITY = 5;
+    
+    /**
+     * What are the chances hitting a brick and getting something
+     */
+    private static final int BRICK_POWER_UP_PROBABILITY = 10;
     
     /**
      * The maximum distance the floors can be apart
@@ -408,30 +421,28 @@ public class LevelCreatorHelper
     /**
      * Place the switch where the goal will be
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      */
-    public static void createGoal(final Level level, final Tiles tiles)
+    public static void createGoal(final Level level)
     {
         //locate the col, row in the array
-        final int col = tiles.getColumns() - (Level.LEVEL_COLUMNS_PER_SCREEN / 2);
-        final int row = tiles.getFloorRow() - 1;
+        final int col = level.getTiles().getColumns() - (Level.LEVEL_COLUMNS_PER_SCREEN / 2);
+        final int row = level.getTiles().getFloorRow() - 1;
         
         //locate x,y coordinates 
         final int x = level.getX(col);
         final int y = level.getY(row);
         
         //add goal switch
-        tiles.add(Tiles.Type.Goal, col, row, x, y);
+        level.getTiles().add(Tiles.Type.Goal, col, row, x, y);
     }
     
     /**
      * Create the floor for the level.<br>
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createFloor(final Level level, final Tiles tiles, final Random random)
+    public static void createFloor(final Level level, final Random random)
     {
         //get random floor type
         Tiles.Type type = getRandomFloorType(random);
@@ -442,33 +453,33 @@ public class LevelCreatorHelper
         boolean createdGap = false;
         
         //fill floor first
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //locate x,y coordinates of the tiles
             int x;
             int y;
             
             //if the first screen or last add all floors by default
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
             {
-                if (col == 0 || col == tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN)
+                if (col == 0 || col == level.getTiles().getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN)
                 {
                     for (int i = 0; i < Level.LEVEL_COLUMNS_PER_SCREEN; i++)
                     {
                         x = level.getX(col + i);
-                        y = level.getY(tiles.getFloorRow());
+                        y = level.getY(level.getTiles().getFloorRow());
                         
                         if (i == 0)
                         {
-                            tiles.add(west, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(west, col + i, level.getTiles().getFloorRow(), x, y);
                         }
                         else if (i == Level.LEVEL_COLUMNS_PER_SCREEN - 1)
                         {
-                            tiles.add(east, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(east, col + i, level.getTiles().getFloorRow(), x, y);
                         }
                         else
                         {
-                            tiles.add(type, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(type, col + i, level.getTiles().getFloorRow(), x, y);
                         }
                     }
                 }
@@ -485,10 +496,10 @@ public class LevelCreatorHelper
                     createdGap = true;
 
                     //if the gap count overlaps the safe zone
-                    if (tiles.isSafeZone(col + gapSize))
+                    if (level.getTiles().isSafeZone(col + gapSize))
                     {
                         //adjust the gap count
-                        gapSize = (tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
+                        gapSize = (level.getTiles().getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
                     }
                     
                     //skip to the column after the gap
@@ -500,13 +511,13 @@ public class LevelCreatorHelper
                     createdGap = false;
                     
                     //choose how long this floor will be
-                    int floorLength = random.nextInt(MAX_FLOOR_LENGTH) + 2;
+                    int floorLength = random.nextInt(MAX_FLOOR_LENGTH) + 3;
                     
                     //make sure floor doesn't go into last screen
-                    if (tiles.isSafeZone(col + floorLength))
+                    if (level.getTiles().isSafeZone(col + floorLength))
                     {
                         //adjust floor length
-                        floorLength = (tiles.getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
+                        floorLength = (level.getTiles().getColumns() - Level.LEVEL_COLUMNS_PER_SCREEN) - (col + 1);
                     }
                     
                     //add the tiles to the floor
@@ -514,23 +525,23 @@ public class LevelCreatorHelper
                     {
                         //locate x,y coordinates for each tile
                         x = level.getX(col + i);
-                        y = level.getY(tiles.getFloorRow());
+                        y = level.getY(level.getTiles().getFloorRow());
                         
                         //add west side for first
                         if (i == 0)
                         {
-                            tiles.add(west, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(west, col + i, level.getTiles().getFloorRow(), x, y);
                         }
-                        else if (col + i == tiles.getColumns() - 1 || i == floorLength - 1)
+                        else if (col + i == level.getTiles().getColumns() - 1 || i == floorLength - 1)
                         {
                             //add end floor and exit loop
-                            tiles.add(east, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(east, col + i, level.getTiles().getFloorRow(), x, y);
                             break;
                         }
-                        else if (col + i < tiles.getColumns())
+                        else if (col + i < level.getTiles().getColumns())
                         {
                             //everything else will have regular floor
-                            tiles.add(type, col + i, tiles.getFloorRow(), x, y);
+                            level.getTiles().add(type, col + i, level.getTiles().getFloorRow(), x, y);
                         }
                     }
                     
@@ -539,26 +550,26 @@ public class LevelCreatorHelper
             }
         }
         
-        //if true we will fill the gaps the gaps empty
-        if (random.nextBoolean())
+        //if true we will fill the empty gaps
+        if (random.nextBoolean() && type != Tiles.Type.Floor18Center)
         {
             //get random tile of type
             Tiles.Type tmp = getRandomDeadlyGapObstacle(random);
             
             //now go in and determine if the gaps should be holes or have deadly obstacles
-            for (int col = 0; col < tiles.getColumns(); col++)
+            for (int col = 0; col < level.getTiles().getColumns(); col++)
             {
                 //we only want the gaps
-                if (tiles.hasTile(col, tiles.getFloorRow() + 1))
+                if (level.getTiles().hasTile(col, level.getTiles().getFloorRow() + 1))
                     continue;
 
                 //how big is the gap
                 int gapSize = 0;
 
-                for (int i = col; i < tiles.getColumns(); i++)
+                for (int i = col; i < level.getTiles().getColumns(); i++)
                 {
                     //if there is a tile here then calculate the gap size
-                    if (tiles.hasTile(i, tiles.getFloorRow() + 1))
+                    if (level.getTiles().hasTile(i, level.getTiles().getFloorRow() + 1))
                     {
                         gapSize = (i - col);
                         break;
@@ -570,10 +581,10 @@ public class LevelCreatorHelper
                 {
                     //locate x,y coordinates for each tile
                     int x = level.getX(col + i);
-                    int y = level.getY(tiles.getFloorRow() + 1);
+                    int y = level.getY(level.getTiles().getFloorRow() + 1);
 
                     //add deadly gap obstacle
-                    tiles.add(tmp, col + i, tiles.getFloorRow() + 1, x, y);
+                    level.getTiles().add(tmp, col + i, level.getTiles().getFloorRow() + 1, x, y);
                 }
 
                 //skip to the next gap
@@ -586,18 +597,17 @@ public class LevelCreatorHelper
      * Now place some deadly obstacles
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createDeadlyObstacles(final Level level, final Tiles tiles, final Random random)
+    public static void createDeadlyObstacles(final Level level, final Random random)
     {
         //get random deadly obstacle
         final Tiles.Type type = getRandomDeadlyObstacle(random);
         
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //don't place any objects in safe zone
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
                 continue;
             
             //choose at random to skip
@@ -605,20 +615,20 @@ public class LevelCreatorHelper
                 continue;
             
             //the row where we are trying to place obstacle
-            final int placeRow = tiles.getFloorRow() - type.getRowDimensions();
+            final int placeRow = level.getTiles().getFloorRow() - type.getRowDimensions();
             
             //now make sure there is nothing blocking it
-            if (!tiles.isOccupied(col, placeRow, type, false) && tiles.isOccupied(col, placeRow + 1, type, false))
+            if (!level.getTiles().isOccupied(col, placeRow, type, false) && level.getTiles().isOccupied(col, placeRow + 1, type, false))
             {
                 //also make sure this isn't next to a gap
-                if (tiles.hasTile(col + 1, tiles.getFloorRow()) && tiles.hasTile(col - 1, tiles.getFloorRow()))
+                if (level.getTiles().hasTile(col + 1, level.getTiles().getFloorRow()) && level.getTiles().hasTile(col - 1, level.getTiles().getFloorRow()))
                 {
                     //locate x,y coordinates for the tile
                     int x = level.getX(col);
                     int y = level.getY(placeRow);
 
                     //finally add deadly obstacle
-                    tiles.add(type, col, placeRow, x, y);
+                    level.getTiles().add(type, col, placeRow, x, y);
                 }
             }
         }
@@ -628,15 +638,14 @@ public class LevelCreatorHelper
      * Now place some obstacles
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createCollisionObstacles(final Level level, final Tiles tiles, final Random random)
+    public static void createCollisionObstacles(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //don't place any objects in safe zone
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
                 continue;
             
             //choose at random to skip
@@ -652,7 +661,7 @@ public class LevelCreatorHelper
             for (int x = 0; x < type.getColumnDimensions(); x++)
             {
                 //if floor is not there this is not a valid place for the obstacle
-                if (!tiles.hasTile(col + x, tiles.getFloorRow()))
+                if (!level.getTiles().hasTile(col + x, level.getTiles().getFloorRow()))
                 {
                     valid = false;
                     break;
@@ -664,13 +673,13 @@ public class LevelCreatorHelper
                 continue;
             
             //the row where we are trying to place obstacle
-            final int placeRow = tiles.getFloorRow() - type.getRowDimensions();
+            final int placeRow = level.getTiles().getFloorRow() - type.getRowDimensions();
 
             //now make sure there is nothing blocking it
-            if (!tiles.isOccupied(col, placeRow, type, false))
+            if (!level.getTiles().isOccupied(col, placeRow, type, false))
             {
                 //if there is a gap to the left don't place here, because it could make jumps difficult
-                if (!tiles.hasTile(col - 1, tiles.getFloorRow()))
+                if (!level.getTiles().hasTile(col - 1, level.getTiles().getFloorRow()))
                     continue;
                 
                 //locate x,y coordinates for the tile
@@ -678,7 +687,7 @@ public class LevelCreatorHelper
                 int y = level.getY(placeRow);
 
                 //finally add obstacle
-                tiles.add(type, col, placeRow, x, y);
+                level.getTiles().add(type, col, placeRow, x, y);
                 
                 //add space between collision obstacles
                 col += MIN_COLLISION_OBSTACLE_SPACE + type.getColumnDimensions();
@@ -690,15 +699,14 @@ public class LevelCreatorHelper
      * Place platforms in the level
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createPlatforms(final Level level, final Tiles tiles, final Random random)
+    public static void createPlatforms(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //don't place any objects in safe zone
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
                 continue;
 
             //choose at random to skip
@@ -712,14 +720,14 @@ public class LevelCreatorHelper
             Tiles.Type type = getRandomPlatform(random);
             
             //determine where item will be placed
-            final int placeRow = tiles.getFloorRow() - difference - 1;
+            final int placeRow = level.getTiles().getFloorRow() - difference - 1;
             
             boolean valid = true;
             
             for (int i = 0; i < MIN_PLATFORM_SPACE; i++)
             {
                 //if any place is occupied then this is not valid
-                if (tiles.isOccupied(col, placeRow + i, type, false))
+                if (level.getTiles().isOccupied(col, placeRow + i, type, false))
                 {
                     valid = false;
                     break;
@@ -735,7 +743,7 @@ public class LevelCreatorHelper
             int y = level.getY(placeRow);
 
             //place platform
-            tiles.add(type, col, placeRow, x, y);
+            level.getTiles().add(type, col, placeRow, x, y);
 
             //get number of columns in platform
             final int columns = type.getColumnDimensions();
@@ -744,7 +752,7 @@ public class LevelCreatorHelper
             type = getRandomDeadlyObstacleCeiling(random);
             
             //if all tiles are occupied then that means we are not above a gap, which is good
-            boolean occupied = (tiles.isOccupied(col, tiles.getFloorRow(), type, true));
+            boolean occupied = (level.getTiles().isOccupied(col, level.getTiles().getFloorRow(), type, true));
             
             //check if we are going to place a deadly obstacle below this one
             if (random.nextInt(ADD_DEADLY_OBSTACLES_PROBABILITY) == 0 && occupied)
@@ -757,7 +765,7 @@ public class LevelCreatorHelper
                     y = level.getY(placeRow + 1);
 
                     //place platform
-                    tiles.add(type, col + i, placeRow + 1, x, y);
+                    level.getTiles().add(type, col + i, placeRow + 1, x, y);
                 }
             }
             
@@ -770,12 +778,11 @@ public class LevelCreatorHelper
      * Place backgrounds in the level
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createBackgrounds(final Level level, final Tiles tiles, final Random random)
+    public static void createBackgrounds(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //choose at random to skip
             if (random.nextInt(ADD_BACKGROUNDS_PROBABILITY) != 0)
@@ -785,19 +792,35 @@ public class LevelCreatorHelper
             Tiles.Type type = getRandomBackground(random);
 
             //determine where item will be placed
-            final int placeRow = tiles.getFloorRow() - type.getRowDimensions();
+            final int placeRow = level.getTiles().getFloorRow() - type.getRowDimensions();
 
-            if (tiles.hasRange(type, col, placeRow))
+            if (level.getTiles().hasRange(type, col, placeRow))
             {
+                boolean valid = true;
+                
                 //make sure tiles below are occupied before we add background
-                if (tiles.isOccupied(col, placeRow + type.getRowDimensions(), type, true) && !tiles.isOccupied(col, placeRow, type, false))
+                for (int x = 0; x < type.getColumnDimensions(); x++)
                 {
-                    //locate x,y coordinates for the tile
-                    int x = level.getX(col);
-                    int y = level.getY(placeRow);
+                    if (!level.getTiles().hasTile(col + x, placeRow + 1))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+                
+                //continue if this is a valid place
+                if (valid)
+                {
+                    //make sure we aren't placing background over another tile
+                    if (!level.getTiles().isOccupied(col, placeRow, type, false))
+                    {
+                        //locate x,y coordinates for the tile
+                        int x = level.getX(col);
+                        int y = level.getY(placeRow);
 
-                    //place background
-                    tiles.add(type, col, placeRow, x, y);
+                        //place background
+                        level.getTiles().add(type, col, placeRow, x, y);
+                    }
                 }
             }
         }
@@ -807,12 +830,11 @@ public class LevelCreatorHelper
      * Place clouds in the level
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createClouds(final Level level, final Tiles tiles, final Random random)
+    public static void createClouds(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //choose at random to skip
             if (random.nextInt(ADD_CLOUDS_PROBABILITY) != 0)
@@ -824,16 +846,16 @@ public class LevelCreatorHelper
             //determine where item will be placed
             final int placeRow = random.nextInt(Level.LEVEL_ROWS_PER_SCREEN / 3);
             
-            if (tiles.hasRange(type, col, placeRow))
+            if (level.getTiles().hasRange(type, col, placeRow))
             {
-                if (!tiles.isOccupied(col, placeRow, type, false))
+                if (!level.getTiles().isOccupied(col, placeRow, type, false))
                 {
                     //locate x,y coordinates for the tile
                     int x = level.getX(col);
                     int y = level.getY(placeRow);
 
                     //place cloud
-                    tiles.add(type, col, placeRow, x, y);
+                    level.getTiles().add(type, col, placeRow, x, y);
                 }
                 
                 //skip columns
@@ -846,15 +868,14 @@ public class LevelCreatorHelper
      * Add breakable bricks and power up blocks
      * 
      * @param level Our level object used to determine the (x,y) coordinates
-     * @param tiles The object that contains all of the level's tiles
      * @param random Object used to make random decisions
      */
-    public static void createBlocks(final Level level, final Tiles tiles, final Random random)
+    public static void createBlocks(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //skip the safe zone
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
                 continue;
             
             //choose to add at random
@@ -862,7 +883,7 @@ public class LevelCreatorHelper
                 continue;
             
             //row where we want to place blocks at
-            final int placeRow = random.nextInt(tiles.getFloorRow() - (MIN_BLOCKS_SPACE-1)) + MIN_BLOCKS_SPACE + 1;
+            final int placeRow = random.nextInt(level.getTiles().getFloorRow() - (MIN_BLOCKS_SPACE-1)) + MIN_BLOCKS_SPACE + 1;
             
             //how many we want to add
             final int total = random.nextInt(MAX_BLOCKS_ADD) + 1;
@@ -870,34 +891,22 @@ public class LevelCreatorHelper
             //is this a valid place to put blocks
             boolean valid = true;
             
-            final Tiles.Type type;
-            
-            //determine the type of block added
-            switch (random.nextInt(3))
-            {
-                case 0:
-                    type = Tiles.Type.BreakableBrick;
-                    break;
-                    
-                //here we have a greater chance of a question block
-                default:
-                    type = Tiles.Type.QuestionBlock;
-                    break;
-            }
+            //flip a coin to determine what is added
+            final Tiles.Type type = random.nextBoolean() ? Tiles.Type.BreakableBrick : Tiles.Type.QuestionBlock;
             
             for (int i = 0; i < MIN_BLOCKS_SPACE; i++)
             {
                 for (int z = 0; z < total; z++)
                 {
                     //don't place blocks over gaps
-                    if (!tiles.hasTile(col + z, tiles.getFloorRow()))
+                    if (!level.getTiles().hasTile(col + z, level.getTiles().getFloorRow()))
                     {
                         valid = false;
                         break;
                     }
                     
                     //place is already occupied this is a bad place
-                    if (tiles.isOccupied(col + z, placeRow + i, type, false) || tiles.isOccupied(col + z, placeRow - i, type, false))
+                    if (level.getTiles().isOccupied(col + z, placeRow + i, type, false) || level.getTiles().isOccupied(col + z, placeRow - i, type, false))
                     {
                         valid = false;
                         break;
@@ -918,7 +927,19 @@ public class LevelCreatorHelper
                 int y = level.getY(placeRow);
                 
                 //add block to list
-                tiles.add(type, col + z, placeRow, x, y);
+                level.getTiles().add(type, col + z, placeRow, x, y);
+                
+                //determine if the block contains a powerup
+                switch (type)
+                {
+                    case BreakableBrick:
+                        level.getTiles().getTile(col + z, placeRow).setPowerup(random.nextInt(BRICK_POWER_UP_PROBABILITY) == 0);
+                        break;
+                        
+                    case QuestionBlock:
+                        level.getTiles().getTile(col + z, placeRow).setPowerup(random.nextInt(BLOCK_POWER_UP_PROBABILITY) == 0);
+                        break;
+                }
             }
             
             //skip columns
@@ -926,12 +947,12 @@ public class LevelCreatorHelper
         }
     }
     
-    public static void placeCoins(final Level level, final Tiles tiles, final PowerUps powerUps, final Random random)
+    public static void placeCoins(final Level level, final Random random)
     {
-        for (int col = 0; col < tiles.getColumns(); col++)
+        for (int col = 0; col < level.getTiles().getColumns(); col++)
         {
             //skip the safe zone
-            if (tiles.isSafeZone(col))
+            if (level.getTiles().isSafeZone(col))
                 continue;
             
             //choose to add at random
@@ -939,7 +960,7 @@ public class LevelCreatorHelper
                 continue;
             
             //row where we want to place coins at
-            final int placeRow = random.nextInt(tiles.getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
+            final int placeRow = random.nextInt(level.getTiles().getFloorRow() - MIN_BLOCKS_SPACE) + MIN_BLOCKS_SPACE;
             
             //how many we want to add
             final int totalCols = random.nextInt(MAX_COIN_COLS_ADD) + 1;
@@ -955,7 +976,7 @@ public class LevelCreatorHelper
                 for (int z = 0; z < totalCols; z++)
                 {
                     //check the current tule
-                    Tile tile = tiles.getTile(col + z, placeRow + i);
+                    Tile tile = level.getTiles().getTile(col + z, placeRow + i);
                     
                     if (tile != null && !LevelCreatorHelper.isBackgroundTile(tile) && !LevelCreatorHelper.isCloudTile(tile))
                     {
@@ -978,7 +999,7 @@ public class LevelCreatorHelper
                     int y = level.getY(placeRow + i);
 
                     //add coin
-                    powerUps.add(PowerUps.Type.Coin, x, y, y);
+                    level.getPowerUps().add(PowerUps.Type.Coin, x, y, y);
                 }
             }
             

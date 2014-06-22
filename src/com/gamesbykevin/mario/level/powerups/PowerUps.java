@@ -2,12 +2,17 @@ package com.gamesbykevin.mario.level.powerups;
 
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
+import com.gamesbykevin.mario.effects.Effects;
 
 import com.gamesbykevin.mario.entity.Entity;
+import com.gamesbykevin.mario.heroes.AnimationHelper;
+import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.level.*;
 import com.gamesbykevin.mario.level.tiles.*;
 
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -128,6 +133,104 @@ public final class PowerUps implements Disposable
         }
     }
     
+    public void manageHeroCollision(final Level level, final Hero hero)
+    {
+        try
+        {
+            //a type will be returned and removed from the list if the hero has collision
+            PowerUps.Type type = level.getPowerUpCollision(hero);
+            
+            //if no collision return
+            if (type == null)
+                return;
+
+            switch (type)
+            {
+                case Mushroom:
+                    hero.setBig(true);
+                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+                    hero.setDimensions();
+                    
+                    Tile south = hero.checkCollisionSouth(level.getTiles());
+            
+                    //correct mario y location
+                    if (south != null)
+                        hero.setY(south.getY() - hero.getHeight());
+                    break;
+                    
+                case Flower:
+                    hero.setBig(true);
+                    hero.setFire(true);
+                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+                    hero.setDimensions();
+                    
+                    south = hero.checkCollisionSouth(level.getTiles());
+            
+                    //correct mario y location
+                    if (south != null)
+                        hero.setY(south.getY() - hero.getHeight());
+                    break;
+                    
+                case Star:
+                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+                    
+                    //flag invincible
+                    hero.setInvincible(true);
+                    
+                    //reset invincible timers
+                    hero.getTimers().reset();
+                    break;
+                    
+                case Coin:
+                    //add coin
+                    hero.addCoin();
+                    break;
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    public void managePowerupBlock(final Random random, final Tile north, final Level level, final Hero mario)
+    {
+        level.getTiles().add(Tiles.Type.UsedBlock, north.getCol(), north.getRow(), north.getX(), north.getY());
+        
+        //choose at random if we are to add a power up, that is not a coin
+        if (north.isPowerup())
+        {
+            //the block can do two different things
+            if (random.nextBoolean())
+            {
+                //determine mario power up
+                if (!mario.isBig())
+                {
+                    //if not big it will be a mushroom
+                    level.getPowerUps().add(PowerUps.Type.Mushroom, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                }
+                else
+                {
+                    //if not big it will be a fire flower
+                    level.getPowerUps().add(PowerUps.Type.Flower, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                }
+            }
+            else
+            {
+                //choose star
+                level.getPowerUps().add(PowerUps.Type.Star, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+            }
+        }
+        else
+        {
+            //need to add animation effect of collecting a coin here
+            level.getEffects().add(north.getX(), north.getY() - north.getHeight(), Effects.Type.CollectCoin);
+            
+            //add to our count
+            mario.addCoin();
+        }
+    }
+    
     public void update(final long time, final double scrollX, final Random random, final Tiles tiles)
     {
         for (int i = 0; i < powerUps.size(); i++)
@@ -165,17 +268,22 @@ public final class PowerUps implements Disposable
             }
             else
             {
-                //apply gravity once destination has been reached
-                powerUp.applyGravity(tiles);
-                
+                //now that destination has been reached, apply gravity to the appropriate power ups
                 switch (powerUp.getType())
                 {
                     case Star:
-
-                        //we always want the star to keep jumping
-                        if (!powerUp.isJumping())
-                            powerUp.startJump();
+                    case Mushroom:
+                    case Flower:
+                        powerUp.applyGravity(tiles);
                         break;
+                }
+                
+                //star is always jumping/falling
+                if (powerUp.getType() == Type.Star)
+                {
+                    //we always want the star to keep jumping
+                    if (!powerUp.isJumping())
+                        powerUp.startJump();
                 }
             
                 if (powerUp.hasVelocityX())
@@ -227,8 +335,16 @@ public final class PowerUps implements Disposable
             //update location based on scrolling
             powerUp.setX(powerUp.getX() + scrollX);
             
-            //update location based velocity
-            powerUp.update();
+            //the coin is the only powerup that can't move
+            switch (powerUp.getType())
+            {
+                case Star:
+                case Mushroom:
+                case Flower:
+                    //update location based velocity
+                    powerUp.update();
+                    break;
+            }
             
             //update animation
             powerUp.update(time);

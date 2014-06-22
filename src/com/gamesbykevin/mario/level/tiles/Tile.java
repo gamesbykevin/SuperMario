@@ -16,6 +16,9 @@ public final class Tile extends Entity implements Disposable
     //will collision with this tile cause instant death
     private boolean death = false;
     
+    //does this tile contain a powerup
+    private boolean powerUp = false;
+    
     //do we check for collision
     private boolean solid;
     
@@ -36,6 +39,16 @@ public final class Tile extends Entity implements Disposable
     public Type getType()
     {
         return this.type;
+    }
+    
+    public void setPowerup(final boolean powerUp)
+    {
+        this.powerUp = powerUp;
+    }
+    
+    public boolean isPowerup()
+    {
+        return this.powerUp;
     }
     
     protected void setDamage(final boolean damage)

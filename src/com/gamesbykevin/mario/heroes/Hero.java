@@ -1,14 +1,13 @@
 package com.gamesbykevin.mario.heroes;
 
+import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.powerups.PowerUps;
 import com.gamesbykevin.mario.level.tiles.*;
-import com.gamesbykevin.mario.level.tiles.Tiles.Type;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.image.BufferedImage;
@@ -18,19 +17,13 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.Random;
 
-public abstract class Hero extends Character implements IElement 
+public abstract class Hero extends Character implements IElement, Disposable 
 {
     //by default the hero isn't big
-    private boolean big = false;
+    private boolean big = true;
     
     //by default the hero doesn't have fire
-    private boolean fire = false;
-    
-    //by default the hero won't be invincible
-    private boolean invincible = false;
-    
-    //by default the hero won't be hurt
-    private boolean hurt = false;
+    private boolean fire = true;
     
     //store if we are jumping
     private boolean jumping = false;
@@ -38,8 +31,11 @@ public abstract class Hero extends Character implements IElement
     //has the hero solved the puzzle
     private boolean victory = false;
     
-    //the fireball mario can fire
-    private Projectile fireball;
+    //how many coins does the hero have
+    private int coin = 0;
+    
+    //the number of lives the hero has
+    private int lives = 5;
     
     //our invincible image
     private BufferedImage invincibleImage;
@@ -50,11 +46,6 @@ public abstract class Hero extends Character implements IElement
     private static final double SCROLL_WEST_RATIO = .25;
     private static final double SCROLL_EAST_RATIO = .65;
     
-    /**
-     * What are the chances hitting this block is a power up
-     */
-    private static final int BLOCK_POWER_UP_PROBABILITY = 5;
-    
     //how long to wait until switching to other image
     private static final long INVINCIBLE_IMAGE_SWITCH_DELAY = Timers.toNanoSeconds(100L);
     
@@ -63,6 +54,11 @@ public abstract class Hero extends Character implements IElement
     
     //how long will mario be hurt before receiving damage again
     private static final long HURT_DELAY = Timers.toNanoSeconds(5000L);
+    
+    //how many coins are required for a new life
+    private static final int COINS_PER_LIFE = 100;
+    
+    private static final int MAX_LIVES = 99;
     
     private enum TimerKey
     {
@@ -99,6 +95,33 @@ public abstract class Hero extends Character implements IElement
     protected Hero()
     {
         super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_WALK, Character.DEFAULT_SPEED_RUN);
+        
+        //setup animations
+        defineAnimations();
+    }
+    
+    @Override
+    public void dispose()
+    {
+        super.dispose();
+        
+        if (timers != null)
+        {
+            timers.dispose();
+            timers = null;
+        }
+        
+        if (invincibleImage != null)
+        {
+            invincibleImage.flush();
+            invincibleImage = null;
+        }
+        
+        if (transparentImage != null)
+        {
+            transparentImage.flush();
+            transparentImage = null;
+        }
     }
     
     /**
@@ -143,196 +166,6 @@ public abstract class Hero extends Character implements IElement
         }
     }
     
-    public State getDefaultAnimation()
-    {
-        if (hasFire())
-        {
-            return State.FireIdle;
-        }
-        else
-        {
-            if (isBig())
-            {
-                return State.BigIdle;
-            }
-            else
-            {
-                return State.SmallIdle;
-            }
-        }
-    }
-    
-    public void setAnimationAttack()
-    {
-        if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireAttack, false);
-        }
-    }
-    
-    public void setAnimationDead()
-    {
-        setAnimation(State.Dead, false);
-    }
-    
-    public void setAnimationVictory()
-    {
-        if (!isBig())
-        {
-            //set accordingly
-            setAnimation(State.SmallVictory, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireVictory, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigVictory, false);
-        }
-    }
-    
-    public void setAnimationDuck()
-    {
-        if (!isBig())
-        {
-            //there is not animation for small so do nothing
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireDuck, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigDuck, false);
-        }
-    }
-    
-    public void setAnimationJump()
-    {
-        if (!isBig())
-        {
-            //we are not big so set small
-            setAnimation(State.SmallJump, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireJump, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigJump, false);
-        }
-    }
-    
-    public void setAnimationRun()
-    {
-        if (!isBig())
-        {
-            //we are not big so set small
-            setAnimation(State.SmallRun, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireRun, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigRun, false);
-        }
-    }
-    
-    public void setAnimationWalk()
-    {
-        if (!isBig())
-        {
-            //we are not big so set small
-            setAnimation(State.SmallWalk, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireWalk, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigWalk, false);
-        }
-    }
-    
-    public void setAnimationIdle()
-    {
-        if (!isBig())
-        {
-            //we are not big so set small
-            setAnimation(State.SmallIdle, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireIdle, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigIdle, false);
-        }
-    }
-    
-    public void setAnimationMiniMap()
-    {
-        if (!isBig())
-        {
-            //we are not big so set small
-            setAnimation(State.SmallMiniMap, false);
-        }
-        else if (hasFire())
-        {
-            //we have fire so set accordingly
-            setAnimation(State.FireMiniMap, false);
-        }
-        else
-        {
-            //we are just big so set accordingly
-            setAnimation(State.BigMiniMap, false);
-        }
-    }
-    
-    public void setInvincible(final boolean invincible)
-    {
-        this.invincible = invincible;
-        
-        if (invincible)
-        {
-            setHurt(false);
-        }
-    }
-    
-    public boolean isHurt()
-    {
-        return this.hurt;
-    }
-    
-    public void setHurt(final boolean hurt)
-    {
-        this.hurt = hurt;
-    }
-    
-    public boolean isInvincible()
-    {
-        return this.invincible;
-    }
-    
     public void setBig(final boolean big)
     {
         this.big = big;
@@ -363,17 +196,6 @@ public abstract class Hero extends Character implements IElement
         return this.fire;
     }
     
-    public boolean hasFireball()
-    {
-        return (fireball != null);
-    }
-    
-    private void removeFireball()
-    {
-        this.fireball = null;
-        this.setAttack(false);
-    }
-    
     private void setupTimers(final long time)
     {
         this.timers = new Timers(time);
@@ -381,6 +203,11 @@ public abstract class Hero extends Character implements IElement
         this.timers.add(TimerKey.InvincibilityDuration, INVINCIBLE_DELAY);
         this.timers.add(TimerKey.Hurt, HURT_DELAY);
         this.timers.reset();
+    }
+    
+    public Timers getTimers()
+    {
+        return this.timers;
     }
     
     private void updateTimers()
@@ -438,6 +265,37 @@ public abstract class Hero extends Character implements IElement
         }
     }
     
+    public void setLives(final int lives)
+    {
+        this.lives = lives;
+        
+        //limit the number of lives
+        if (getLives() > MAX_LIVES)
+            setLives(MAX_LIVES);
+    }
+    
+    public int getLives()
+    {
+        return this.lives;
+    }
+    
+    public void addCoin()
+    {
+        this.coin++;
+        
+        if (this.coin >= COINS_PER_LIFE)
+        {
+            //reset coins back to 0
+            this.coin = 0;
+            this.setLives(this.getLives() + 1);
+        }
+    }
+    
+    public int getCoin()
+    {
+        return this.coin;
+    }
+    
     @Override
     public void update(final Engine engine)
     {
@@ -459,165 +317,161 @@ public abstract class Hero extends Character implements IElement
         //apply gravity
         applyGravity(engine.getManager().getLevel().getTiles());
         
-        //manage the heroes collision with the level
-        manageLevelCollision(engine.getManager().getLevel(), engine.getRandom());
-        
-        //if the hero is off the screen, we are dead
-        if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
-            markDead();
-        
-        if (hasFireball())
+        if (!isDead())
         {
-            fireball.update(engine.getMain().getTime());
-            fireball.update();
-            fireball.applyGravity(engine.getManager().getLevel().getTiles());
-            fireball.manageLevelCollision(engine.getManager().getLevel(), engine.getRandom());
-            
-            //flag fireball as dead if no longer on the screen
-            if (!engine.getManager().getWindow().contains(fireball.getCenter()))
-                fireball.markDead();
-            
-            if (fireball.isDead())
-                removeFireball();
-        }
+            //check the heroes collision with the level
+            checkLevelCollision(engine.getManager().getLevel(), engine.getRandom());
+
+            //if the hero is off the screen, we are dead
+            if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
+                markDead();
         
-        //manage power up collision
-        managePowerUp(engine.getManager().getLevel().getPowerUpCollision(this), engine.getManager().getLevel().getTiles());
+            //manage power up collision
+            engine.getManager().getLevel().getPowerUps().manageHeroCollision(engine.getManager().getLevel(), this);
+        }
         
         //make sure correct animation is set
         checkAnimation();
         
         //check if we are to scroll the level
         checkScroll(engine.getManager().getLevel(), engine.getManager().getWindow());
+        
+        //update the projectiles
+        updateProjectiles(engine.getMain().getTime(), engine.getManager().getLevel());
+        
+        //check if hero has been hurt
+        if (hasDamageCheck())
+        {
+            markHurt();
+            unflagDamage();
+        }
     }
     
-    private void manageLevelCollision(final Level level, final Random random)
+    private void checkLevelCollision(final Level level, final Random random)
     {
         Tiles tiles = level.getTiles();
         
-        PowerUps powerUps = level.getPowerUps();
-        
-        //check for collision to the north first
-        Tile north = checkCollisionNorth(tiles);
-        
-        //no collision was found north, now check the rest
-        if (north == null || !isJumping())
+        Tile south = checkCollisionSouth(tiles);
+
+        //if we hit a tile at our feet, make sure to stop
+        if (south != null)
         {
-            if (getVelocityX() < 0)
+            if (super.isJumping())
+                super.stopJumping();
+
+            if (south.getType() == Tiles.Type.Goal)
             {
-                Tile west = checkCollisionWest(tiles);
+                //set as complete
+                tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
+
+                //mark level as complete
+                level.setComplete(true);
+
+                //stop the level timer
+                level.pauseTimer();
                 
-                if (west != null)
+                //stop moving
+                resetVelocity();
+                
+                //set animation
+                setVictory(true);
+            }
+
+            if (!isInvincible())
+            {
+                if (south.hasDeath())
                 {
-                    setVelocityX(SPEED_NONE);
-                    
-                    if (!isInvincible())
+                    switch (south.getType())
                     {
-                        if (west.hasDamage())
-                        {
-                            switch (west.getType())
-                            {
-                                case RotatingGear:
-                                case RotatingGear2:
-                                    markHurt();
-                                    break;
-                            }
-                        }
+                        case Lava:
+                        case Water1:
+                        case Water2:
+                            markDead();
+                            setY(south.getY() - Tile.HEIGHT);
+                            break;
                     }
                 }
-                
-                if (checkCollisionNorthWest(tiles) != null)
-                    setVelocityX(SPEED_NONE);
-            }
-            
-            if (getVelocityX() > 0)
-            {
-                Tile east = checkCollisionEast(tiles);
-                
-                //if collision with east
-                if (east != null)
+                else if (south.hasDamage())
                 {
-                    setVelocityX(SPEED_NONE);
-                    
-                    if (!isInvincible())
+                    switch (south.getType())
                     {
-                        if (east.hasDamage())
-                        {
-                            switch (east.getType())
-                            {
-                                case RotatingGear:
-                                case RotatingGear2:
-                                    markHurt();
-                                    break;
-                            }
-                        }
+                        case RotatingGear:
+                        case RotatingGear2:
+                        case SpikesUp1:
+                        case SpikesUp2:
+                            markHurt();
+                            break;
                     }
                 }
-                
-                if (checkCollisionNorthEast(tiles) != null)
-                    setVelocityX(SPEED_NONE);
             }
-            
-            Tile south = checkCollisionSouth(tiles);
-            
-            //if we hit a tile at our feet, make sure to stop
-            if (south != null)
+        }
+        
+        if (getVelocityX() < 0)
+        {
+            Tile west = checkCollisionWest(tiles);
+
+            if (west != null)
             {
-                if (super.isJumping())
-                    super.stopJumping();
-                
-                if (south.getType() == Tiles.Type.Goal)
-                {
-                    //remove goal tile
-                    tiles.remove((int)south.getCol(), (int)south.getRow());
-                    
-                    //set as complete
-                    tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
-                    
-                    //mark level as complete
-                    level.setComplete(true);
-                    
-                    //set animation
-                    setVictory(true);
-                }
-                
+                setVelocityX(SPEED_NONE);
+
                 if (!isInvincible())
                 {
-                    if (south.hasDeath())
+                    if (west.hasDamage())
                     {
-                        switch (south.getType())
-                        {
-                            case Lava:
-                            case Water1:
-                            case Water2:
-                                markDead();
-                                setY(south.getY() - Tile.HEIGHT);
-                                break;
-                        }
-                    }
-                    else if (south.hasDamage())
-                    {
-                        switch (south.getType())
+                        switch (west.getType())
                         {
                             case RotatingGear:
                             case RotatingGear2:
-                            case SpikesUp1:
-                            case SpikesUp2:
                                 markHurt();
                                 break;
                         }
                     }
                 }
             }
+
+            if (checkCollisionNorthWest(tiles) != null)
+                setVelocityX(SPEED_NONE);
         }
-        else
+        
+        if (getVelocityX() > 0)
+        {
+            Tile east = checkCollisionEast(tiles);
+
+            //if collision with east
+            if (east != null)
+            {
+                setVelocityX(SPEED_NONE);
+
+                if (!isInvincible())
+                {
+                    if (east.hasDamage())
+                    {
+                        switch (east.getType())
+                        {
+                            case RotatingGear:
+                            case RotatingGear2:
+                                markHurt();
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if (checkCollisionNorthEast(tiles) != null)
+                setVelocityX(SPEED_NONE);
+        }
+        
+        //check for collision to the north first
+        Tile north = checkCollisionNorth(tiles);
+        
+        if (north != null)
         {
             //if moving north check if the tile will hurt
             if (getVelocityY() < 0)
             {
                 //also start falling down
                 setVelocityY(VELOCITY_DECREASE);
-                
+
                 //if the block can cause death
                 if (north.hasDeath())
                 {
@@ -636,53 +490,31 @@ public abstract class Hero extends Character implements IElement
                     }
                 }
             }
-            
+
             switch (north.getType())
             {
                 case QuestionBlock:
-                    tiles.add(Tiles.Type.UsedBlock, north.getCol(), north.getRow(), north.getX(), north.getY());
+                    level.getPowerUps().managePowerupBlock(random, north, level, this);
+                    break;
 
-                    //choose at random if we are to add a power up, that is not a coin
-                    if (random.nextInt(BLOCK_POWER_UP_PROBABILITY) == 0)
+                case BreakableBrick:
+
+                    //at random choose if a hidden power up is here
+                    if (north.isPowerup())
                     {
-                        //the block can do two different things
-                        if (random.nextBoolean())
-                        {
-                            //determine mario power up
-                            if (!isBig())
-                            {
-                                //if not big it will be a mushroom
-                                powerUps.add(PowerUps.Type.Mushroom, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
-                            }
-                            else
-                            {
-                                //if not big it will be a fire flower
-                                powerUps.add(PowerUps.Type.Flower, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
-                            }
-                        }
-                        else
-                        {
-                            //choose star
-                            powerUps.add(PowerUps.Type.Star, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
-                        }
+                        level.getPowerUps().managePowerupBlock(random, north, level, this);
                     }
                     else
                     {
-                        //need to add animation effect of collecting a coin here
-                        level.getEffects().add(north.getX(), north.getY() - north.getHeight(), Effects.Type.CollectCoin);
-                    }
-                    break;
-                    
-                case BreakableBrick:
-                    
-                    //can only break a brick if big or has fire
-                    if (isBig() || this.hasFire())
-                    {
-                        //remove tile
-                        tiles.remove((int)north.getCol(), (int)north.getRow());
-                        
-                        //need to add animation effect of brick breaking here
-                        level.getEffects().add(north, Effects.Type.BreakBrick);
+                        //can only break a brick if big or has fire
+                        if (isBig() || this.hasFire())
+                        {
+                            //remove tile
+                            tiles.remove((int)north.getCol(), (int)north.getRow());
+
+                            //need to add animation effect of brick breaking here
+                            level.getEffects().add(north, Effects.Type.BreakBrick);
+                        }
                     }
                     break;
             }
@@ -740,79 +572,9 @@ public abstract class Hero extends Character implements IElement
 
         //stop moving
         resetVelocity();
-    }
-    
-    public void addFireball()
-    {
-        this.fireball = new Projectile();
         
-        if (hasHorizontalFlip())
-        {
-            this.fireball.setLocation(getX() - fireball.getWidth(), getY());
-            this.fireball.setVelocityX(-Projectile.DEFAULT_VELOCITY_X);
-        }
-        else
-        {
-            this.fireball.setLocation(getX() + getWidth(), getY());
-            this.fireball.setVelocityX(Projectile.DEFAULT_VELOCITY_X);
-        }
-        
-        this.fireball.setVelocityY(Projectile.DEFAULT_VELOCITY_Y);
-        this.fireball.startJump();
-    }
-        
-    private void managePowerUp(final PowerUps.Type type, final Tiles tiles)
-    {
-        try
-        {
-            if (type == null)
-                return;
-
-            switch (type)
-            {
-                case Mushroom:
-                    setBig(true);
-                    setAnimation(getDefaultAnimation(), false);
-                    setDimensions();
-                    
-                    Tile south = checkCollisionSouth(tiles);
-            
-                    //correct mario y location
-                    if (south != null)
-                        setY(south.getY() - getHeight());
-                    break;
-                    
-                case Flower:
-                    setBig(true);
-                    setFire(true);
-                    setAnimation(getDefaultAnimation(), false);
-                    setDimensions();
-                    
-                    south = checkCollisionSouth(tiles);
-            
-                    //correct mario y location
-                    if (south != null)
-                        setY(south.getY() - getHeight());
-                    break;
-                    
-                case Star:
-                    setAnimation(getDefaultAnimation(), false);
-                    
-                    //flag invincible
-                    setInvincible(true);
-                    
-                    //reset invincible timers
-                    timers.reset();
-                    break;
-                    
-                case Coin:
-                    break;
-            }
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
+        //jump off the screen
+        startJump();
     }
     
     /**
@@ -847,37 +609,36 @@ public abstract class Hero extends Character implements IElement
     /**
      * Set the correct animation
      */
-    @Override
     protected void checkAnimation()
     {
         //default animation is idle
-        setAnimationIdle();
+        AnimationHelper.setAnimationIdle(this);
         
         if (isDucking())
-            setAnimationDuck();
+            AnimationHelper.setAnimationDuck(this);
         if (isWalking())
-            setAnimationWalk();
+            AnimationHelper.setAnimationWalk(this);
         if (isRunning())
-            setAnimationRun();
+            AnimationHelper.setAnimationRun(this);
         if (isJumping())
-            setAnimationJump();
+            AnimationHelper.setAnimationJump(this);
         if (isAttacking())
-            setAnimationAttack();
+            AnimationHelper.setAnimationAttack(this);
         
         //if we were previosly jumping and are no longer, set correct animation
         if (jumping && !super.isJumping())
         {
             if (isWalking())
             {
-                setAnimationWalk();
+                AnimationHelper.setAnimationWalk(this);
             }
             else if (isRunning())
             {
-                setAnimationRun();
+                AnimationHelper.setAnimationRun(this);
             }
             else
             {
-                setAnimationIdle();
+                AnimationHelper.setAnimationIdle(this);
             }
         }
         else
@@ -885,16 +646,16 @@ public abstract class Hero extends Character implements IElement
             //if we weren't jumping and are now, set correct animation
             if (!jumping && super.isJumping())
             {
-                setAnimationJump();
+                AnimationHelper.setAnimationJump(this);
             }
         }
         
         //if we are dead, we are dead!
         if (isDead())
-            setAnimationDead();
+            AnimationHelper.setAnimationDead(this);
         
         if (hasVictory())
-            setAnimationVictory();
+            AnimationHelper.setAnimationVictory(this);
         
         //auto set the dimensions based on current animation
         super.setDimensions();
@@ -930,8 +691,7 @@ public abstract class Hero extends Character implements IElement
             super.draw(graphics);
         }
         
-        
-        if (hasFireball())
-            fireball.draw(graphics, getImage());
+        //draw projectiles
+        super.renderProjectiles(graphics);
     }
 }

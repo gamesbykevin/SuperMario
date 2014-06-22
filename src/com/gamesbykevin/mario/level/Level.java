@@ -1,8 +1,10 @@
 package com.gamesbykevin.mario.level;
 
 import com.gamesbykevin.framework.resources.Disposable;
-import com.gamesbykevin.mario.effects.Effects;
+import com.gamesbykevin.framework.util.Timer;
+import com.gamesbykevin.framework.util.Timers;
 
+import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.level.tiles.*;
@@ -45,12 +47,41 @@ public final class Level implements Disposable, IElement
     //is the level complete
     private boolean complete = false;
     
+    //our level timer
+    private Timer timer;
+    
+    //the default level duration is 5 minutes
+    private static final long LEVEL_DURATION = Timers.toNanoSeconds(5);
+    
     /**
      * Create a new level
      */
     public Level()
     {
+        //create a new timer
+        this.timer = new Timer(LEVEL_DURATION);
         
+        //pause at first
+        startTimer();
+    }
+    
+    public void startTimer()
+    {
+        timer.setPause(false);
+    }
+    
+    public void pauseTimer()
+    {
+        timer.setPause(true);
+    }
+    
+    private void updateTimer(final long time)
+    {
+        timer.update(time);
+        
+        //don't let the timer go below 0
+        if (timer.getRemaining() < 0)
+            timer.setRemaining(0);
     }
     
     public boolean isComplete()
@@ -73,6 +104,15 @@ public final class Level implements Disposable, IElement
         
         //also set speed of background a little slower so there appears to be depth
         background.setVelocityX(scrollX / 2);
+    }
+    
+    /**
+     * Get the scroll speed
+     * @return the x-coordinate speed to scroll
+     */
+    public double getScrollX()
+    {
+        return this.scrollX;
     }
     
     /**
@@ -125,13 +165,23 @@ public final class Level implements Disposable, IElement
         this.tiles = new Tiles(columns, Level.LEVEL_ROWS_PER_SCREEN, image);
         
         //populate the tiles
-        this.tiles.populate(this, powerUps, random);
+        this.tiles.populate(this, random);
     }
     
     public void createEffects(final Image image)
     {
         //create new object that will contain our effects
         this.effects = new Effects(image);
+    }
+    
+    public Timer getTimer()
+    {
+        return this.timer;
+    }
+    
+    public Background getBackground()
+    {
+        return this.background;
     }
     
     public PowerUps getPowerUps()
@@ -149,10 +199,16 @@ public final class Level implements Disposable, IElement
         return this.effects;
     }
     
+    public Rectangle getBoundary()
+    {
+        return this.boundary;
+    }
+    
     @Override
     public void dispose()
     {
         boundary = null;
+        timer = null;
         
         if (tiles != null)
         {
@@ -165,26 +221,41 @@ public final class Level implements Disposable, IElement
             effects.dispose();
             effects = null;
         }
+        
+        if (background != null)
+        {
+            background.dispose();
+            background = null;
+        }
+        
+        if (powerUps != null)
+        {
+            powerUps.dispose();
+            powerUps = null;
+        }
     }
     
     @Override
     public void update(final Engine engine)
     {
         //if the boundary is not set, get it
-        if (boundary == null)
+        if (getBoundary() == null)
             boundary = engine.getManager().getWindow();
         
         //update tiles
-        tiles.update(engine.getMain().getTime(), scrollX);
+        tiles.update(engine.getMain().getTime(), getScrollX());
         
         //update power ups
-        powerUps.update(engine.getMain().getTime(), scrollX, engine.getRandom(), getTiles());
+        powerUps.update(engine.getMain().getTime(), getScrollX(), engine.getRandom(), getTiles());
         
         //update location
-        background.update(boundary.x, boundary.x + boundary.width, engine.getMain().getTime());
+        background.update(getBoundary().x, getBoundary().x + getBoundary().width, engine.getMain().getTime());
         
         //update effects animation
-        effects.update(engine.getMain().getTime(), scrollX);
+        effects.update(engine.getMain().getTime(), getScrollX());
+        
+        //update timer
+        updateTimer(engine.getMain().getTime());
     }
     
     @Override
@@ -194,13 +265,13 @@ public final class Level implements Disposable, IElement
         background.render(graphics);
         
         //draw background objects etc..
-        tiles.renderNonSolidTiles(graphics, boundary);
+        tiles.renderNonSolidTiles(graphics, getBoundary());
         
         //draw the power ups
         powerUps.render(graphics);
         
         //draw objects the players can interact with (collision etc..)
-        tiles.renderSolidTiles(graphics, boundary);
+        tiles.renderSolidTiles(graphics, getBoundary());
         
         //draw the effects
         effects.render(graphics);

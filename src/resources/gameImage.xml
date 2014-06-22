@@ -5,4 +5,6 @@
     <image id="LevelBackgrounds">resources/images/game/LevelBackgrounds.png</image>
     <image id="PowerUps">resources/images/game/PowerUps.png</image>
     <image id="Effects">resources/images/game/Effects.png</image>
+    <image id="Hud">resources/images/game/Hud.png</image>
+    <image id="Enemies">resources/images/game/Enemies.png</image>
 </images>
