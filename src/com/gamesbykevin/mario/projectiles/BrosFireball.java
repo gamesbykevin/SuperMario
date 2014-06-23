@@ -9,16 +9,16 @@ import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.tiles.Tile;
 import com.gamesbykevin.mario.level.tiles.Tiles;
 
-public final class HeroFireball extends Projectile
+public final class BrosFireball extends Projectile
 {
-    private static final int FIREBALL_WIDTH = 8;
-    private static final int FIREBALL_HEIGHT = 9;
+    public static final int PROJECTILE_WIDTH = 9;
+    public static final int PROJECTILE_HEIGHT = 9;
     
     protected static final double DEFAULT_VELOCITY_X = 2;
     protected static final double DEFAULT_VELOCITY_Y = 2;
     protected static final double DEFAULT_JUMP_VELOCITY = 2;
     
-    public HeroFireball()
+    public BrosFireball()
     {
         //the jump velocity
         super.setJumpVelocity(DEFAULT_JUMP_VELOCITY);
@@ -28,7 +28,7 @@ public final class HeroFireball extends Projectile
     protected void defineAnimations()
     {
         //fireball
-        super.addAnimation(Hero.State.Fireball, 4, 0, 80, FIREBALL_WIDTH, FIREBALL_HEIGHT, Timers.toNanoSeconds(250L), true);
+        super.addAnimation(Hero.State.Fireball, 4, 48, 558, PROJECTILE_WIDTH, PROJECTILE_HEIGHT, Timers.toNanoSeconds(250L), true);
     }
     
     @Override
@@ -40,10 +40,7 @@ public final class HeroFireball extends Projectile
             if (character.hasWeaknessProjectile())
             {
                 //enemy has been killed
-                character.markDead();
-                
-                //flip enemy upside down
-                character.setVerticalFlip(true);
+                character.flagDamage();
             }
             
             //add effect to be drawn

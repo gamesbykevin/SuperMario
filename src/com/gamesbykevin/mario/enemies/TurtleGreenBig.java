@@ -209,29 +209,7 @@ public final class TurtleGreenBig extends Enemy
             }
         }
         
-        //check tile below
-        Tile south = checkCollisionSouth(tiles);
-
-        //if we hit a tile at our feet, make sure to stop
-        if (south != null)
-        {
-            //stop jumping if we were previously
-            if (super.isJumping())
-                super.stopJumping();
-        }
-        
-        //if moving west, check for west collision
-        if (getVelocityX() < 0)
-        {
-            if (checkCollisionWest(tiles) != null)
-                turnAround();
-        }
-        
-        //if moving east, check for east collision
-        if (getVelocityX() > 0)
-        {
-            if (checkCollisionEast(tiles) != null)
-                turnAround();
-        }
+        //check basic collision
+        checkDefaultLevelCollision(tiles);
     }
 }

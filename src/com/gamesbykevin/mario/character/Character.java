@@ -8,6 +8,7 @@ import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.projectiles.Projectile;
 
 import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -327,6 +328,10 @@ public abstract class Character extends Entity implements Disposable
     
     protected void updateProjectiles(final long time, final Level level)
     {
+        //don't continue if nothing exists
+        if (getProjectiles().isEmpty())
+            return;
+        
         for (int i = 0; i < projectiles.size(); i++)
         {
             Projectile projectile = projectiles.get(i);
@@ -360,11 +365,29 @@ public abstract class Character extends Entity implements Disposable
      */
     protected abstract void defineAnimations();
     
-    public final void renderProjectiles(final Graphics graphics)
+    /**
+     * Draw the character's projectiles
+     * @param graphics Graphics object used to write images
+     * @param boundary The border used to determine if a projectile needs to be rendered, if null we won't check the boundary
+     */
+    public final void renderProjectiles(final Graphics graphics, final Rectangle boundary)
     {
         for (int i = 0; i < projectiles.size(); i++)
         {
-            projectiles.get(i).draw(graphics, getImage());
+            //get the current projectile
+            Projectile projectile = projectiles.get(i);
+            
+            if (boundary != null)
+            {
+                //don't render if not on screen
+                if (projectile.getX() + projectile.getWidth()  < boundary.x || projectile.getX() > boundary.x + boundary.width)
+                    continue;
+                if (projectile.getY() + projectile.getHeight() < boundary.y || projectile.getY() > boundary.y + boundary.height)
+                    continue;
+            }
+            
+            //draw projectile
+            projectile.draw(graphics, getImage());
         }
     }
 }

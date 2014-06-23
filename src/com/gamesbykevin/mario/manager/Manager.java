@@ -106,7 +106,7 @@ public final class Manager implements IManager
         this.enemies = new Enemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), getWindow());
         
         //add default enemy for now
-        this.enemies.add(200, 100, Enemies.Type.BulletBill, engine.getRandom());
+        this.enemies.add(200, 150, Enemies.Type.FireballBros, engine.getRandom());
         
         //create new object to manage input
         this.input = new Input();

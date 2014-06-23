@@ -24,9 +24,11 @@ public final class Enemies implements Disposable, IElement
     
     public enum Type
     {
-        TurtleGreen, TurtleRed, TurtleGreenWings, TurtleRedWings, TurtleGreenBig, TurtleGreenWingsBig, 
-        TurtleRedBig, TurtleRedWingsBig, Spiny, Boo, GoombaBig, BuzzyBeetle, TurtleSkeleton, Goomba, 
-        GoombaWings, GoombaRed, GoombaRedWings, Thwomp, BulletBill, 
+        TurtleGreen, TurtleRed, TurtleGreenWings, TurtleRedWings, TurtleGreenBig, 
+        TurtleGreenWingsBig, TurtleRedBig, TurtleRedWingsBig, Spiny, Boo, 
+        GoombaBig, BuzzyBeetle, TurtleSkeleton, Goomba, GoombaWings, 
+        GoombaRed, GoombaRedWings, Thwomp, BulletBill, Spike, 
+        Plant, BoomerangBros, HammerBros, FireballBros, 
     }
     
     public Enemies(final Image image, final Rectangle boundary)
@@ -153,6 +155,26 @@ public final class Enemies implements Disposable, IElement
                     enemy = new BulletBill(random);
                     break;
                     
+                case Spike:
+                    enemy = new Spike(random);
+                    break;
+                    
+                case Plant:
+                    enemy = new Plant(random);
+                    break;
+                    
+                case BoomerangBros:
+                    enemy = new BoomerangBros(random);
+                    break;
+                    
+                case HammerBros:
+                    enemy = new HammerBros(random);
+                    break;
+                    
+                case FireballBros:
+                    enemy = new FireballBros(random);
+                    break;
+                    
                 default:
                     throw new Exception("Enemy type not setup here: " + type.toString());
             }
@@ -210,7 +232,7 @@ public final class Enemies implements Disposable, IElement
             Enemy enemy = enemies.get(i);
             
             //draw projectiles regardless if enemy isn't on screen
-            enemy.renderProjectiles(graphics);
+            enemy.renderProjectiles(graphics, boundary);
             
             //if not on screen, we won't render
             if (enemy.getX() + enemy.getWidth()  < boundary.x || enemy.getX() > boundary.x + boundary.width)

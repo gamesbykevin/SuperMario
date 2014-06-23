@@ -3,7 +3,6 @@ package com.gamesbykevin.mario.enemies;
 import com.gamesbykevin.framework.util.Timer;
 
 import com.gamesbykevin.framework.util.Timers;
-import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.tiles.Tile;
@@ -196,46 +195,11 @@ public final class TurtleSkeleton extends Enemy
             }
         }
         
-        //check tile below
-        Tile south = checkCollisionSouth(tiles);
-
-        //if we hit a tile at our feet, make sure to stop
-        if (south != null)
-        {
-            //stop jumping if we were previously
-            if (super.isJumping())
-                super.stopJumping();
-        }
-        
-        //if moving west, check for west collision
-        if (getVelocityX() < 0)
-        {
-            if (checkCollisionWest(tiles) != null)
-                turnAround();
-        }
-        
-        //if moving east, check for east collision
-        if (getVelocityX() > 0)
-        {
-            if (checkCollisionEast(tiles) != null)
-                turnAround();
-        }
+        //check basic collision
+        checkDefaultLevelCollision(tiles);
         
         //if moving east or west check if going to fall off edge
-        if (isAnimation(State.Walking) && hasVelocityX())
-        {
-            if (getVelocityX() < 0)
-            {
-                //if there is no floor below, turn around
-                if (!tiles.hasFloorBelow(getX() + getVelocityX()))
-                    turnAround();
-            }
-            else
-            {
-                //if there is no floor below, turn around
-                if (!tiles.hasFloorBelow(getX() + getWidth() + getVelocityX()))
-                    turnAround();
-            }
-        }
+        if (isAnimation(State.Walking))
+            preventDeath(tiles);
     }
 }

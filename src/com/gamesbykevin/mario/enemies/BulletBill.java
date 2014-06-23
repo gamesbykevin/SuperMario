@@ -3,12 +3,10 @@ package com.gamesbykevin.mario.enemies;
 import com.gamesbykevin.framework.util.Timer;
 
 import com.gamesbykevin.framework.util.Timers;
-import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
 import com.gamesbykevin.mario.projectiles.Bullet;
 
 import java.util.Random;
@@ -30,7 +28,7 @@ public final class BulletBill extends Enemy
     private static final long DEFAULT_DURATON_REST = Timers.toNanoSeconds(1500L);
     
     //the range to determine if the enemy is to attack
-    private static final double TILES_RANGE = 8;
+    private static final double PIXEL_RANGE = Tile.WIDTH * 8;
     
     public BulletBill(final Random random)
     {
@@ -87,7 +85,7 @@ public final class BulletBill extends Enemy
         if (canThrowProjectile())
         {
             //check if the hero is close enough to the enemy
-            if (pixelDistance <= Tile.WIDTH * TILES_RANGE)
+            if (pixelDistance <= PIXEL_RANGE)
             {
                 //update timer
                 timer.update(time);

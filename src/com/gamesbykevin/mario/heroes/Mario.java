@@ -60,7 +60,7 @@ public final class Mario extends Hero
         super.addAnimation(State.BigJump, 2, 64, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
         //big mario ducking
-        super.addAnimation(State.BigDuck, 1, 112, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        super.addAnimation(State.BigDuck, 1, 112, 25, BIG_MARIO_WIDTH, 22, DEFAULT_DELAY, false);
         
         //big mario victory
         super.addAnimation(State.BigVictory, 1, 128, 16, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
@@ -82,7 +82,7 @@ public final class Mario extends Hero
         super.addAnimation(State.FireJump, 2, 64, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY / 2, false);
         
         //fire mario ducking
-        super.addAnimation(State.FireDuck, 1, 112, 47, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY, false);
+        super.addAnimation(State.FireDuck, 1, 112, 56, BIG_MARIO_WIDTH, 22, DEFAULT_DELAY, false);
         
         //fire mario attacking
         super.addAnimation(State.FireAttack, 1, 128, 48, BIG_MARIO_WIDTH, BIG_MARIO_HEIGHT, DEFAULT_DELAY * 2, false);

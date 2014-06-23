@@ -6,7 +6,7 @@ import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.projectiles.Projectile;
+import com.gamesbykevin.mario.level.tiles.Tiles;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
@@ -85,7 +85,56 @@ public abstract class Enemy extends Character implements Disposable, IElement
 
         //the enemy will face the opposite direction
         setHorizontalFlip(!hasHorizontalFlip());
-    }    
+    }
+    
+    /**
+     * Prevent the enemy from walking off the edge
+     * @param tiles The tiles in our level
+     */
+    protected void preventDeath(final Tiles tiles)
+    {
+        if (hasVelocityX())
+        {
+            if (getVelocityX() < 0)
+            {
+                //if there is no floor below, turn around
+                if (!tiles.hasFloorBelow(getX() + getVelocityX()))
+                    turnAround();
+            }
+            else
+            {
+                //if there is no floor below, turn around
+                if (!tiles.hasFloorBelow(getX() + getWidth() + getVelocityX()))
+                    turnAround();
+            }
+        }
+    }
+    
+    protected void checkDefaultLevelCollision(final Tiles tiles)
+    {
+        //if we hit a tile at our feet, make sure to stop
+        if (checkCollisionSouth(tiles) != null)
+        {
+            //stop jumping if we were previously
+            if (super.isJumping())
+                super.stopJumping();
+        }
+
+        //if moving west, check for west collision
+        if (getVelocityX() < 0)
+        {
+            if (checkCollisionWest(tiles) != null)
+                turnAround();
+        }
+
+        //if moving east, check for east collision
+        if (getVelocityX() > 0)
+        {
+            if (checkCollisionEast(tiles) != null)
+                turnAround();
+        }
+    }
+    
     /**
      * Determine if collision with the enemy can cause damage.<br>
      * An example would be bullet bill, collision would not cause damage so this value would be false. <br>
@@ -213,7 +262,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
                 if (!hero.isHurt())
                 {
                     //check if this enemy was stomped on
-                    if (checkCollisionNorth(hero))
+                    if (checkCollisionNorth(hero) && hero.getVelocityY() > 0)
                     {
                         if (hasWeaknessStomp())
                         {

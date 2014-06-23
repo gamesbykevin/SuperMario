@@ -6,7 +6,6 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
 import com.gamesbykevin.mario.level.tiles.Tiles;
 
 import java.util.Random;

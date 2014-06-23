@@ -31,7 +31,7 @@ public final class Thwomp extends Enemy
     private static final long DEFAULT_DURATON_STOPPED = Timers.toNanoSeconds(2500L);
     
     //the range to determine if the enemy is to attack
-    private static final double TILES_RANGE = 2;
+    private static final double PIXEL_RANGE = Tile.WIDTH * 2;
     
     public Thwomp(final Random random)
     {
@@ -103,7 +103,7 @@ public final class Thwomp extends Enemy
             final double pixelDistance = (middleX > heroMiddleX) ? middleX - heroMiddleX : heroMiddleX - middleX;
             
             //check if the hero is close enough to the enemy
-            if (pixelDistance <= Tile.WIDTH * TILES_RANGE)
+            if (pixelDistance <= PIXEL_RANGE)
             {
                 //get the start
                 startY = getY();

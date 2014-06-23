@@ -657,8 +657,14 @@ public abstract class Hero extends Character implements IElement, Disposable
         if (hasVictory())
             AnimationHelper.setAnimationVictory(this);
         
+        //get original bottom y-coordinate
+        final double y = getY() + getHeight();
+        
         //auto set the dimensions based on current animation
         super.setDimensions();
+        
+        //correct y-coordinate
+        setY(y - getHeight());
     }
     
     @Override
@@ -692,6 +698,6 @@ public abstract class Hero extends Character implements IElement, Disposable
         }
         
         //draw projectiles
-        super.renderProjectiles(graphics);
+        super.renderProjectiles(graphics, null);
     }
 }

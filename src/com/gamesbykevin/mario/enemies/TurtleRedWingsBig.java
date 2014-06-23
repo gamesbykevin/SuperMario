@@ -6,7 +6,6 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
 import com.gamesbykevin.mario.level.tiles.Tiles;
 
 import java.util.Random;
@@ -241,20 +240,7 @@ public final class TurtleRedWingsBig extends Enemy
         }
         
         //if moving east or west check if going to fall off edge
-        if (isAnimation(State.Walking) && hasVelocityX())
-        {
-            if (getVelocityX() < 0)
-            {
-                //if there is no floor below, turn around
-                if (!tiles.hasFloorBelow(getX() + getVelocityX()))
-                    turnAround();
-            }
-            else
-            {
-                //if there is no floor below, turn around
-                if (!tiles.hasFloorBelow(getX() + getWidth() + getVelocityX()))
-                    turnAround();
-            }
-        }
+        if (isAnimation(State.Walking))
+            preventDeath(tiles);
     }
 }
