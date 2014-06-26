@@ -31,13 +31,13 @@ public final class Plant extends Enemy
     private static final long DEFAULT_DURATON_PAUSED = Timers.toNanoSeconds(3500L);
     
     //the speed which to appear
-    protected static final double DEFAULT_VELOCITY_Y = 0.25;
+    protected static final double DEFAULT_VELOCITY_Y = 0.5;
     
     //the range to determine if the enemy is to attack
-    private static final double PIXEL_RANGE_ATTACK = Tile.WIDTH * 5;
+    private static final double PIXEL_RANGE_ATTACK = Tile.WIDTH * 6;
     
     //the range to determine if the enemy is to hide
-    private static final double PIXEL_RANGE_HIDE = Tile.WIDTH * 2.25;
+    private static final double PIXEL_RANGE_HIDE = Tile.WIDTH * 3.25;
     
     public Plant(final Random random)
     {

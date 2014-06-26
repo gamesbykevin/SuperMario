@@ -14,8 +14,8 @@ public final class PlantFireball extends Projectile
     private static final int FIREBALL_WIDTH = 9;
     private static final int FIREBALL_HEIGHT = 9;
     
-    protected static final double DEFAULT_VELOCITY_X = 0.25;
-    protected static final double DEFAULT_VELOCITY_Y = DEFAULT_VELOCITY_X * 3;
+    private static final double DEFAULT_VELOCITY_Y = 0.55;
+    private static final double DEFAULT_VELOCITY_X = DEFAULT_VELOCITY_Y * 1.5;;
     
     public PlantFireball(final boolean north)
     {
@@ -85,12 +85,12 @@ public final class PlantFireball extends Projectile
         if (character.hasHorizontalFlip())
         {
             setLocation(character.getX() + (character.getWidth() / 2), character.getY() + (character.getHeight() / 4));
-            setVelocityX(HeroFireball.DEFAULT_VELOCITY_X);
+            setVelocityX(DEFAULT_VELOCITY_X);
         }
         else
         {
             setLocation(character.getX() + (character.getWidth() / 2), character.getY() + (character.getHeight() / 4));
-            setVelocityX(-HeroFireball.DEFAULT_VELOCITY_X);
+            setVelocityX(-DEFAULT_VELOCITY_X);
         }
     }
     

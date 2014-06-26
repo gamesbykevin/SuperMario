@@ -44,9 +44,6 @@ public final class Manager implements IManager
     //here we will manage the keyboard input in the game
     private Input input;
     
-    //our enemies in the game
-    private Enemies enemies;
-    
     //heads-up-display
     private Hud hud;
     
@@ -79,34 +76,32 @@ public final class Manager implements IManager
     public void reset(final Engine engine) throws Exception
     {
         //create new level starting at specified location
-        this.level = new Level();
+        this.level = new Level(getWindow());
         
         //create tiles of specified size
         this.level.createTiles(
-            Level.LEVEL_COLUMNS_PER_SCREEN * 5, 
+            Level.LEVEL_COLUMNS_PER_SCREEN * 10, 
             engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
             engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
             engine.getRandom());
         this.level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
         this.level.createEffects(engine.getResources().getGameImage(GameImages.Keys.Effects));
+        this.level.placeEnemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), engine.getRandom());
         
         //create new mario
-        this.mario = new Mario();
-        this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
-        this.mario.createMiscImages();
-        this.mario.setDimensions();
+        if (this.mario == null)
+        {
+            this.mario = new Mario();
+            this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
+            this.mario.createMiscImages();
+            this.mario.setDimensions();
+        }
         
         //set the start location of the hero
         this.mario.setLocation(level.getX(4), level.getY(level.getTiles().getFloorRow()) - mario.getHeight());
         
         //create new heads up display
         this.hud = new Hud(engine.getResources().getGameImage(GameImages.Keys.Hud), getWindow(), mario, level);
-        
-        //create new container for the enemies
-        this.enemies = new Enemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), getWindow());
-        
-        //add default enemy for now
-        this.enemies.add(200, 150, Enemies.Type.FireballBros, engine.getRandom());
         
         //create new object to manage input
         this.input = new Input();
@@ -120,11 +115,6 @@ public final class Manager implements IManager
     public Level getLevel()
     {
         return this.level;
-    }
-    
-    public Enemies getEnemies()
-    {
-        return this.enemies;
     }
     
     @Override
@@ -165,12 +155,6 @@ public final class Manager implements IManager
             hud.dispose();
             hud = null;
         }
-        
-        if (enemies != null)
-        {
-            enemies.dispose();
-            enemies = null;
-        }
     }
     
     /**
@@ -201,11 +185,6 @@ public final class Manager implements IManager
         {
             hud.update(engine);
         }
-        
-        if (enemies != null)
-        {
-            enemies.update(engine);
-        }
     }
     
     /**
@@ -226,11 +205,6 @@ public final class Manager implements IManager
         if (hud != null)
         {
             hud.render(graphics);
-        }
-        
-        if (enemies != null)
-        {
-            enemies.render(graphics);
         }
         
         if (mario != null)

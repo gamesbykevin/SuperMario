@@ -15,9 +15,8 @@ public final class Bullet extends Projectile
     private static final int PROJECTILE_HEIGHT = 14;
     
     //the speed to move
-    protected static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2);
-    
-    protected static final double DEFAULT_JUMP_VELOCITY = 4;    
+    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2);
+    private static final double DEFAULT_JUMP_VELOCITY = 4;    
     
     private enum State
     {

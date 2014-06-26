@@ -11,7 +11,7 @@ public final class Hammer extends Projectile
     public static final int PROJECTILE_HEIGHT = 16;
     
     //the speed to move
-    protected static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_RUN * 1.1);
+    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_RUN * 1.1);
     
     private enum State
     {
@@ -100,7 +100,7 @@ public final class Hammer extends Projectile
             applyGravity(level.getTiles());
         
         //if the projectile is no longer on the screen, flag as dead
-        if (!level.getBoundary().intersects(getRectangle()))
+        if (!level.getBoundary().intersects(getRectangle()) && getY() > level.getBoundary().getY())
         {
             //flag dead
             markDead();

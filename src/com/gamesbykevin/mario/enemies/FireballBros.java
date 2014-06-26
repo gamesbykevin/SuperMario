@@ -24,7 +24,7 @@ public final class FireballBros extends Enemy
     private Timer timer;
     
     //how long before we throw another projectile
-    private static final long DELAY_BETWEEN_PROJECTILES = Timers.toNanoSeconds(750L);
+    private static final long DELAY_BETWEEN_PROJECTILES = Timers.toNanoSeconds(850L);
     
     //different speeds for this enemy
     private static final double WALK_SPEED = 0.25;
@@ -60,7 +60,7 @@ public final class FireballBros extends Enemy
         //walking animation
         super.addAnimation(State.Walking, 2, 0, 558, 16, 24, Timers.toNanoSeconds(250L), true);
         
-        //stunned animation
+        //attack animation
         super.addAnimation(State.Attacking, 1, 32, 558, 16, 24, Timers.toNanoSeconds(500L), false);
         
         //set the default animation

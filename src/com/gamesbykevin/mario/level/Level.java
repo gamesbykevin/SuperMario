@@ -5,6 +5,7 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.effects.Effects;
+import com.gamesbykevin.mario.enemies.Enemies;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.level.tiles.*;
@@ -44,6 +45,9 @@ public final class Level implements Disposable, IElement
     //the effects
     private Effects effects;
     
+    //our enemies in the game
+    private Enemies enemies;
+    
     //is the level complete
     private boolean complete = false;
     
@@ -56,8 +60,11 @@ public final class Level implements Disposable, IElement
     /**
      * Create a new level
      */
-    public Level()
+    public Level(final Rectangle boundary)
     {
+        //set boundary
+        this.boundary = boundary;
+        
         //create a new timer
         this.timer = new Timer(LEVEL_DURATION);
         
@@ -174,6 +181,23 @@ public final class Level implements Disposable, IElement
         this.effects = new Effects(image);
     }
     
+    public void placeEnemies(final Image image, final Random random)
+    {
+        if (this.enemies == null)
+        {
+            //create new container for the enemies
+            this.enemies = new Enemies(image, boundary);
+        }
+        else
+        {
+            //remove any existing enemies
+            this.enemies.reset();
+        }
+        
+        //place enemies in level
+        this.enemies.placeEnemies(getTiles(), random);
+    }
+    
     public Timer getTimer()
     {
         return this.timer;
@@ -197,6 +221,11 @@ public final class Level implements Disposable, IElement
     public Effects getEffects()
     {
         return this.effects;
+    }
+    
+    public Enemies getEnemies()
+    {
+        return this.enemies;
     }
     
     public Rectangle getBoundary()
@@ -233,15 +262,17 @@ public final class Level implements Disposable, IElement
             powerUps.dispose();
             powerUps = null;
         }
+        
+        if (enemies != null)
+        {
+            enemies.dispose();
+            enemies = null;
+        }
     }
     
     @Override
     public void update(final Engine engine)
     {
-        //if the boundary is not set, get it
-        if (getBoundary() == null)
-            boundary = engine.getManager().getWindow();
-        
         //update tiles
         tiles.update(engine.getMain().getTime(), getScrollX());
         
@@ -253,6 +284,10 @@ public final class Level implements Disposable, IElement
         
         //update effects animation
         effects.update(engine.getMain().getTime(), getScrollX());
+        
+        //if level is not complete update enemies
+        if (!isComplete())
+            enemies.update(engine);
         
         //update timer
         updateTimer(engine.getMain().getTime());
@@ -270,10 +305,16 @@ public final class Level implements Disposable, IElement
         //draw the power ups
         powerUps.render(graphics);
         
-        //draw objects the players can interact with (collision etc..)
-        tiles.renderSolidTiles(graphics, getBoundary());
-        
         //draw the effects
         effects.render(graphics);
+        
+        //now draw the enemies
+        enemies.render(graphics);
+        
+        //draw solid level tiles after
+        getTiles().renderSolidTiles(graphics, getBoundary());
+        
+        //draw projectiles on top of solid tiles
+        enemies.renderProjectiles(graphics);
     }
 }

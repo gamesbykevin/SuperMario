@@ -14,9 +14,9 @@ public final class HeroFireball extends Projectile
     private static final int FIREBALL_WIDTH = 8;
     private static final int FIREBALL_HEIGHT = 9;
     
-    protected static final double DEFAULT_VELOCITY_X = 2;
-    protected static final double DEFAULT_VELOCITY_Y = 2;
-    protected static final double DEFAULT_JUMP_VELOCITY = 2;
+    private static final double DEFAULT_VELOCITY_X = 2;
+    private static final double DEFAULT_VELOCITY_Y = 2;
+    private static final double DEFAULT_JUMP_VELOCITY = 2;
     
     public HeroFireball()
     {

@@ -13,8 +13,8 @@ public final class Boomerang extends Projectile
     public static final int PROJECTILE_HEIGHT = 16;
     
     //the speed to move
-    protected static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2.15);
-    protected static final double DEFAULT_VELOCITY_Y = 0.5;
+    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2.15);
+    private static final double DEFAULT_VELOCITY_Y = 0.5;
     
     //the points where we change the velocity for the projectile
     private double step1X, step2Y, step3Y, step4X;
@@ -33,7 +33,7 @@ public final class Boomerang extends Projectile
         setVelocityX((east) ? DEFAULT_VELOCITY_X : -DEFAULT_VELOCITY_X);
         
         //the jump velocity
-        super.setJumpVelocity(Entity.SPEED_NONE);
+        super.setJumpVelocity(DEFAULT_VELOCITY_Y);
     }
     
     @Override
@@ -216,7 +216,7 @@ public final class Boomerang extends Projectile
         }
         
         //if the projectile is no longer on the screen, flag as dead
-        if (!level.getBoundary().intersects(getRectangle()))
+        if (!level.getBoundary().intersects(getRectangle()) && getY() > level.getBoundary().getY())
         {
             //flag dead
             markDead();

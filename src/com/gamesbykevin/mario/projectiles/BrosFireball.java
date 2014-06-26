@@ -14,9 +14,9 @@ public final class BrosFireball extends Projectile
     public static final int PROJECTILE_WIDTH = 9;
     public static final int PROJECTILE_HEIGHT = 9;
     
-    protected static final double DEFAULT_VELOCITY_X = 2;
-    protected static final double DEFAULT_VELOCITY_Y = 2;
-    protected static final double DEFAULT_JUMP_VELOCITY = 2;
+    private static final double DEFAULT_VELOCITY_X = 2;
+    private static final double DEFAULT_VELOCITY_Y = 2;
+    private static final double DEFAULT_JUMP_VELOCITY = 2;
     
     public BrosFireball()
     {
@@ -90,15 +90,15 @@ public final class BrosFireball extends Projectile
         if (character.hasHorizontalFlip())
         {
             setLocation(character.getX() - getWidth(), character.getY());
-            setVelocityX(-HeroFireball.DEFAULT_VELOCITY_X);
+            setVelocityX(-DEFAULT_VELOCITY_X);
         }
         else
         {
             setLocation(character.getX() + character.getWidth(), character.getY());
-            setVelocityX(HeroFireball.DEFAULT_VELOCITY_X);
+            setVelocityX(DEFAULT_VELOCITY_X);
         }
         
-        setVelocityY(HeroFireball.DEFAULT_VELOCITY_Y);
+        setVelocityY(DEFAULT_VELOCITY_Y);
         startJump();
     }
     

@@ -60,6 +60,9 @@ public final class GoombaRedWings extends Enemy
         
         //we are waling by default
         super.setWalk(true);
+        
+        //start jumping as well
+        super.startJump();
     }
     
     /**
@@ -155,6 +158,13 @@ public final class GoombaRedWings extends Enemy
                 if (isAnimation(State.Walking))
                     super.startJump();
             }
+        }
+        
+        //if moving north
+        if (getVelocityY() < 0)
+        {
+            //check for collision north so we don't hit blocks;
+            checkCollisionNorth(tiles);
         }
 
         //if moving west, check for west collision

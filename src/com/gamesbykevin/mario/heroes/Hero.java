@@ -20,10 +20,10 @@ import java.util.Random;
 public abstract class Hero extends Character implements IElement, Disposable 
 {
     //by default the hero isn't big
-    private boolean big = true;
+    private boolean big = false;
     
     //by default the hero doesn't have fire
-    private boolean fire = true;
+    private boolean fire = false;
     
     //store if we are jumping
     private boolean jumping = false;

@@ -54,6 +54,11 @@ public class LevelCreatorHelper
     private static final int MIN_COLLISION_OBSTACLE_SPACE = 2;
     
     /**
+     * Give each deadly obstacle space between one another
+     */
+    private static final int MIN_DEADLY_OBSTACLE_SPACE = 2;
+    
+    /**
      * The height of the platforms can vary
      */
     private static final int PLATFORM_HEIGHT_DIFFERENCE = 8;
@@ -330,13 +335,29 @@ public class LevelCreatorHelper
     {
         List<Tiles.Type> options = new ArrayList<>();
         
-        options.add(Tiles.Type.RotatingGear);
-        options.add(Tiles.Type.RotatingGear2);
-        options.add(Tiles.Type.SpikesUp1);
-        options.add(Tiles.Type.SpikesUp2);
+        for (int i = 0; i < Tiles.Type.values().length; i++)
+        {
+            if (isDeadlyObstacle(Tiles.Type.values()[i]))
+                options.add(Tiles.Type.values()[i]);
+        }
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
+    }
+    
+    private static boolean isDeadlyObstacle(final Tiles.Type type)
+    {
+        switch (type)
+        {
+            case RotatingGear:
+            case RotatingGear2:
+            case SpikesUp1:
+            case SpikesUp2:
+                return true;
+                
+            default:
+                return false;
+        }
     }
     
     private static Tiles.Type getRandomDeadlyGapObstacle(final Random random)
@@ -387,6 +408,25 @@ public class LevelCreatorHelper
         
         //choose random tile type from list
         return options.get(random.nextInt(options.size()));
+    }
+    
+    public static boolean isPipe(final Tiles.Type type)
+    {
+        switch (type)
+        {
+            case VerticalPipe1:
+            case VerticalPipe2:
+            case VerticalPipe3:
+            case VerticalPipe4:
+            case VerticalPipe5:
+            case VerticalPipe6:
+            case VerticalPipe7:
+            case VerticalPipe8:
+                return true;
+            
+            default:
+                return false;
+        }
     }
     
     private static Tiles.Type getRandomCollisionObstacle(final Random random)
@@ -617,19 +657,36 @@ public class LevelCreatorHelper
             //the row where we are trying to place obstacle
             final int placeRow = level.getTiles().getFloorRow() - type.getRowDimensions();
             
+            boolean valid = true;
+            
+            //make sure the deadly obstacle isn't near a gap, and there aren't other deadly obstacles nearby
+            for (int x = -MIN_DEADLY_OBSTACLE_SPACE; x <= MIN_DEADLY_OBSTACLE_SPACE; x++)
+            {
+                if (!level.getTiles().hasTile(col + x, level.getTiles().getFloorRow()))
+                {
+                    valid = false;
+                    break;
+                }
+                
+                if (level.getTiles().getTile(col + x, placeRow) != null && LevelCreatorHelper.isDeadlyObstacle(level.getTiles().getTile(col + x, placeRow).getType()))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            
+            if (!valid)
+                continue;
+            
             //now make sure there is nothing blocking it
             if (!level.getTiles().isOccupied(col, placeRow, type, false) && level.getTiles().isOccupied(col, placeRow + 1, type, false))
             {
-                //also make sure this isn't next to a gap
-                if (level.getTiles().hasTile(col + 1, level.getTiles().getFloorRow()) && level.getTiles().hasTile(col - 1, level.getTiles().getFloorRow()))
-                {
-                    //locate x,y coordinates for the tile
-                    int x = level.getX(col);
-                    int y = level.getY(placeRow);
+                //locate x,y coordinates for the tile
+                int x = level.getX(col);
+                int y = level.getY(placeRow);
 
-                    //finally add deadly obstacle
-                    level.getTiles().add(type, col, placeRow, x, y);
-                }
+                //finally add deadly obstacle
+                level.getTiles().add(type, col, placeRow, x, y);
             }
         }
     }

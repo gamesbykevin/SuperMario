@@ -12,8 +12,8 @@ public final class SpikeBall extends Projectile
     private static final int PROJECTILE_HEIGHT = 14;
     
     //the speed to move
-    protected static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2);
-    protected static final double DEFAULT_VELOCITY_Y = 0.5;
+    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2);
+    private static final double DEFAULT_VELOCITY_Y = 0.5;
             
     //the direction/speed which to move
     protected double velocityX;
@@ -29,7 +29,7 @@ public final class SpikeBall extends Projectile
     public SpikeBall()
     {
         //the jump velocity
-        super.setJumpVelocity(Entity.SPEED_NONE);
+        super.setJumpVelocity(DEFAULT_VELOCITY_Y);
     }
     
     @Override

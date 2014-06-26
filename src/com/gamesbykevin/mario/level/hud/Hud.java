@@ -65,6 +65,8 @@ public final class Hud extends Entity implements Disposable, IElement
             case Background10:
             case Background11:
             case Background12:
+            case Background13:
+            case Background14:
             case Background21:
             case Background25:
             case Background26:

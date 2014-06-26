@@ -5,8 +5,6 @@ import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.level.Level;
 
-import java.awt.Rectangle;
-
 public abstract class Projectile extends Entity
 {
     public Projectile()

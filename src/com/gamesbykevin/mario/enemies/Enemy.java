@@ -238,9 +238,6 @@ public abstract class Enemy extends Character implements Disposable, IElement
             applyGravity(engine.getManager().getLevel().getTiles());
         }
         
-        //adjust for scrolling
-        setX(getX() + engine.getManager().getLevel().getScrollX());
-        
         //don't continue if we are dead
         if (isDead())
             return;
@@ -262,7 +259,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
                 if (!hero.isHurt())
                 {
                     //check if this enemy was stomped on
-                    if (checkCollisionNorth(hero) && hero.getVelocityY() > 0)
+                    if (checkCollisionNorthAny(hero) && hero.getVelocityY() > 0)
                     {
                         if (hasWeaknessStomp())
                         {

@@ -62,6 +62,9 @@ public final class TurtleRedWingsBig extends Enemy
         
         //we are waling by default
         super.setWalk(true);
+        
+        //start jumping as well
+        super.startJump();
     }
     
     /**
@@ -92,12 +95,12 @@ public final class TurtleRedWingsBig extends Enemy
             setAnimation(State.Kicked, true);
             
             //if the hero is on the left side
-            if (hero.getX() < getX())
+            if (hero.getX() < getX() + (getWidth() / 2))
             {
                 //kick the shell to the right, and make if move faster than the hero's run speed
                 super.setVelocityX(Character.DEFAULT_SPEED_RUN * 1.5);
             }
-            else if (hero.getX() + hero.getWidth() > getX() + getWidth())
+            else
             {
                 //kick the shell to the left, and make if move faster than the hero's run speed
                 super.setVelocityX(-Character.DEFAULT_SPEED_RUN * 1.5);
@@ -223,6 +226,13 @@ public final class TurtleRedWingsBig extends Enemy
                 if (isAnimation(State.Walking))
                     super.startJump();
             }
+        }
+        
+        //if moving north
+        if (getVelocityY() < 0)
+        {
+            //check for collision north so we don't hit blocks;
+            checkCollisionNorth(tiles);
         }
         
         //if moving west, check for west collision

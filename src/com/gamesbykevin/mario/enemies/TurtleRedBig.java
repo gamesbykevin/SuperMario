@@ -6,7 +6,6 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
 import com.gamesbykevin.mario.level.tiles.Tiles;
 
 import java.util.Random;
@@ -93,12 +92,12 @@ public final class TurtleRedBig extends Enemy
             setAnimation(State.Kicked, true);
             
             //if the hero is on the left side
-            if (hero.getX() < getX())
+            if (hero.getX() < getX() + (getWidth() / 2))
             {
                 //kick the shell to the right, and make if move faster than the hero's run speed
                 super.setVelocityX(Character.DEFAULT_SPEED_RUN * 1.5);
             }
-            else if (hero.getX() + hero.getWidth() > getX() + getWidth())
+            else 
             {
                 //kick the shell to the left, and make if move faster than the hero's run speed
                 super.setVelocityX(-Character.DEFAULT_SPEED_RUN * 1.5);
