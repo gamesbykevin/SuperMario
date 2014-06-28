@@ -5,11 +5,12 @@ import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
+import java.util.List;
 
 public abstract class Enemy extends Character implements Disposable, IElement
 {
@@ -27,6 +28,9 @@ public abstract class Enemy extends Character implements Disposable, IElement
     
     //be default is the enemy animation facing east
     private boolean faceEast = false;
+    
+    //can this enemy hurt the other enemies
+    private boolean hurtEnemies = false;
     
     //when we first jump the rate which we move
     public static final double DEFAULT_JUMP_VELOCITY = 3;
@@ -175,6 +179,16 @@ public abstract class Enemy extends Character implements Disposable, IElement
         return this.weaknessStomp;
     }
     
+    protected void setHurtEnemies(final boolean hurtEnemies)
+    {
+        this.hurtEnemies = hurtEnemies;
+    }
+    
+    private boolean canHurtEnemies()
+    {
+        return this.hurtEnemies;
+    }
+    
     protected void setType(final Enemies.Type type)
     {
         this.type = type;
@@ -222,6 +236,9 @@ public abstract class Enemy extends Character implements Disposable, IElement
     @Override
     public void update(final Engine engine)
     {
+        //get the current level
+        final Level level = engine.getManager().getWorld().getLevel();
+        
         //update animation
         super.update(engine.getMain().getTime());
         
@@ -229,18 +246,22 @@ public abstract class Enemy extends Character implements Disposable, IElement
         super.update();
         
         //update the projetiles
-        super.updateProjectiles(engine.getMain().getTime(), engine.getManager().getLevel());
+        super.updateProjectiles(engine.getMain().getTime(), level);
         
         //apply gravity to the enemies that are supposed to
         if (!canDefyGravity())
         {
             //apply gravity
-            applyGravity(engine.getManager().getLevel().getTiles());
+            applyGravity(level.getTiles());
         }
         
         //don't continue if we are dead
         if (isDead())
             return;
+        
+        //check if this enemy can hurt others
+        if (canHurtEnemies())
+            checkEnemyCollision(engine.getManager().getWorld().getLevel().getEnemies().getEnemies());
         
         //get the hero
         final Hero hero = engine.getManager().getMario();
@@ -311,30 +332,67 @@ public abstract class Enemy extends Character implements Disposable, IElement
         }
 
         //check if any projectiles hit the hero
-        hero.checkProjectileCollision(getProjectiles(), engine.getManager().getLevel().getEffects());
+        hero.checkProjectileCollision(getProjectiles(), level.getEffects());
         
         //check if any of the hero projectiles hit the enemy
-        checkProjectileCollision(hero.getProjectiles(), engine.getManager().getLevel().getEffects());
+        checkProjectileCollision(hero.getProjectiles(), level.getEffects());
 
         //make sure enemy is still not dead
         if (!isDead())
         {
             //update ai logic
-            update(hero, engine.getManager().getLevel(), engine.getMain().getTime());
+            update(hero, level, engine.getMain().getTime());
         }
         else
         {
-            //stop moving
-            resetVelocity();
-            
-            //start jumping
-            startJump();
+            setTraditionalDeath();
+        }
+    }
+    
+    /**
+     * Flip enemy upside down and fall off the screen
+     */
+    public void setTraditionalDeath()
+    {
+        //stop moving
+        resetVelocity();
 
-            //once dead no enemy can defy gravity
-            setDefyGravity(false);
-            
-            //turn enemy upside down
-            setVerticalFlip(true);
+        //start jumping
+        startJump();
+
+        //once dead no enemy can defy gravity
+        setDefyGravity(false);
+
+        //turn enemy upside down
+        setVerticalFlip(true);
+    }
+    
+    /**
+     * Check if this enemy can hurt the others.<br>
+     * This is primarily used when the turtle shells have been kicked etc...
+     * @param enemies Enemies we want to check for collision
+     */
+    private void checkEnemyCollision(final List<Enemy> enemies)
+    {
+        //check if hit another enemy
+        for (int i = 0; i < enemies.size(); i++)
+        {
+            //get the current enemy
+            Enemy enemy = enemies.get(i);
+
+            //ignore self or if dead
+            if (getId() == enemy.getId() || enemy.isDead())
+                continue;
+
+            //if the enemies touch
+            if (getRectangle().intersects(enemy.getRectangle()))
+            {
+                //mark enemy dead
+                enemy.markDead();
+                
+                //fall off screen
+                enemy.setTraditionalDeath();
+            }
         }
     }
     

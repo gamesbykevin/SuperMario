@@ -4,8 +4,8 @@ import com.gamesbykevin.framework.base.Animation;
 import com.gamesbykevin.framework.base.Sprite;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
-import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
 /**
  * Every object in the game is an entity

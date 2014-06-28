@@ -1,9 +1,9 @@
-package com.gamesbykevin.mario.level.tiles;
+package com.gamesbykevin.mario.world.level.tiles;
 
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.tiles.Tiles.Type;
+import com.gamesbykevin.mario.world.level.tiles.Tiles.Type;
 
 public final class Tile extends Entity implements Disposable
 {

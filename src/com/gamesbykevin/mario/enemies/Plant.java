@@ -5,10 +5,11 @@ import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.projectiles.PlantFireball;
 
+import java.util.List;
 import java.util.Random;
 
 public final class Plant extends Enemy
@@ -31,7 +32,7 @@ public final class Plant extends Enemy
     private static final long DEFAULT_DURATON_PAUSED = Timers.toNanoSeconds(3500L);
     
     //the speed which to appear
-    protected static final double DEFAULT_VELOCITY_Y = 0.5;
+    protected static final double DEFAULT_VELOCITY_Y = 0.25;
     
     //the range to determine if the enemy is to attack
     private static final double PIXEL_RANGE_ATTACK = Tile.WIDTH * 6;
@@ -113,13 +114,13 @@ public final class Plant extends Enemy
             {
                 //the hero is close, but not too close. we can start to come out to attack
                 setIdle(false);
-                
+
                 //start to appear
                 setVelocityY(-DEFAULT_VELOCITY_Y);
-                
+
                 //set correct animation
                 setAnimation((getY() < hero.getY()) ? State.FaceSouth : State.FaceNorth, true);
-                
+
                 //face the correct direction
                 correctFacingDirection((middleX < heroMiddleX) ? true : false);
             }
@@ -172,6 +173,7 @@ public final class Plant extends Enemy
                         //stop moving
                         resetVelocity();
                         
+                        //set idle again
                         setIdle(true);
                     }
                 }

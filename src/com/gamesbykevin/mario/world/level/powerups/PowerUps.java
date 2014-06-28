@@ -1,5 +1,8 @@
-package com.gamesbykevin.mario.level.powerups;
+package com.gamesbykevin.mario.world.level.powerups;
 
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.effects.Effects;
@@ -7,8 +10,6 @@ import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.AnimationHelper;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.*;
-import com.gamesbykevin.mario.level.tiles.*;
 
 import java.awt.Graphics;
 import java.awt.Image;

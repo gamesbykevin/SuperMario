@@ -1,4 +1,4 @@
-package com.gamesbykevin.mario.level;
+package com.gamesbykevin.mario.world.level;
 
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;

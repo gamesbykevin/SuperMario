@@ -1,7 +1,8 @@
-package com.gamesbykevin.mario.level;
+package com.gamesbykevin.mario.world.level;
 
-import com.gamesbykevin.mario.level.powerups.PowerUps;
-import com.gamesbykevin.mario.level.tiles.*;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.powerups.PowerUps;
 
 import java.util.ArrayList;
 import java.util.List;

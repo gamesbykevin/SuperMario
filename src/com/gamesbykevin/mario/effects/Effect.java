@@ -4,7 +4,7 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.entity.Entity;
 
 import com.gamesbykevin.mario.effects.Effects.Type;
-import com.gamesbykevin.mario.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
 
 public final class Effect extends Entity
 {

@@ -1,10 +1,10 @@
-package com.gamesbykevin.mario.level.tiles;
+package com.gamesbykevin.mario.world.level.tiles;
 
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.LevelCreatorHelper;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.LevelCreatorHelper;
 
 import java.awt.Graphics;
 import java.awt.Image;

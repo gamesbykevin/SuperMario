@@ -7,4 +7,5 @@
     <image id="Effects">resources/images/game/Effects.png</image>
     <image id="Hud">resources/images/game/Hud.png</image>
     <image id="Enemies">resources/images/game/Enemies.png</image>
+    <image id="WorldMap">resources/images/game/WorldMap.png</image>
 </images>

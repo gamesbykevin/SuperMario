@@ -1,13 +1,14 @@
 package com.gamesbykevin.mario.heroes;
 
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.*;
+import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.image.BufferedImage;
@@ -94,7 +95,7 @@ public abstract class Hero extends Character implements IElement, Disposable
     
     protected Hero()
     {
-        super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_WALK, Character.DEFAULT_SPEED_RUN);
+        super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_WALK * 1.5, Character.DEFAULT_SPEED_RUN);
         
         //setup animations
         defineAnimations();
@@ -299,6 +300,9 @@ public abstract class Hero extends Character implements IElement, Disposable
     @Override
     public void update(final Engine engine)
     {
+        //get the current level
+        final Level level = engine.getManager().getWorld().getLevel();
+        
         if (timers == null)
             setupTimers(engine.getMain().getTime());
         
@@ -315,29 +319,29 @@ public abstract class Hero extends Character implements IElement, Disposable
         super.update();
         
         //apply gravity
-        applyGravity(engine.getManager().getLevel().getTiles());
+        applyGravity(level.getTiles());
         
         if (!isDead())
         {
             //check the heroes collision with the level
-            checkLevelCollision(engine.getManager().getLevel(), engine.getRandom());
+            checkLevelCollision(level, engine.getRandom());
 
             //if the hero is off the screen, we are dead
             if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
                 markDead();
         
             //manage power up collision
-            engine.getManager().getLevel().getPowerUps().manageHeroCollision(engine.getManager().getLevel(), this);
+            level.getPowerUps().manageHeroCollision(level, this);
         }
         
         //make sure correct animation is set
         checkAnimation();
         
         //check if we are to scroll the level
-        checkScroll(engine.getManager().getLevel(), engine.getManager().getWindow());
+        checkScroll(level, engine.getManager().getWindow());
         
         //update the projectiles
-        updateProjectiles(engine.getMain().getTime(), engine.getManager().getLevel());
+        updateProjectiles(engine.getMain().getTime(), level);
         
         //check if hero has been hurt
         if (hasDamageCheck())

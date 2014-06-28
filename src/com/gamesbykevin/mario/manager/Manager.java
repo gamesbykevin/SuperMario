@@ -8,8 +8,8 @@ import com.gamesbykevin.mario.enemies.Enemies;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.*;
 import com.gamesbykevin.mario.input.Input;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.hud.Hud;
+import com.gamesbykevin.mario.world.World;
+import com.gamesbykevin.mario.world.level.hud.Hud;
 import com.gamesbykevin.mario.menu.CustomMenu;
 import com.gamesbykevin.mario.menu.CustomMenu.*;
 import com.gamesbykevin.mario.resources.*;
@@ -38,14 +38,11 @@ public final class Manager implements IManager
     //object representing our hero
     private Hero mario;
     
-    //the level
-    private Level level;
+    //the world
+    private World world;
     
     //here we will manage the keyboard input in the game
     private Input input;
-    
-    //heads-up-display
-    private Hud hud;
     
     //the game font
     private Font font;
@@ -60,7 +57,10 @@ public final class Manager implements IManager
         //set the game window where game play will occur
         setWindow(engine.getMain().getScreen());
 
+        //get the game font
         this.font = engine.getResources().getFont(GameFont.Keys.GameFont).deriveFont(12f);
+        
+        
         
         //get the menu object
         //final Menu menu = engine.getMenu();
@@ -75,18 +75,15 @@ public final class Manager implements IManager
     @Override
     public void reset(final Engine engine) throws Exception
     {
-        //create new level starting at specified location
-        this.level = new Level(getWindow());
+        //create new world
+        if (this.world == null)
+        {
+            //create new world
+            this.world = new World();
+        }
         
-        //create tiles of specified size
-        this.level.createTiles(
-            Level.LEVEL_COLUMNS_PER_SCREEN * 10, 
-            engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
-            engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
-            engine.getRandom());
-        this.level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
-        this.level.createEffects(engine.getResources().getGameImage(GameImages.Keys.Effects));
-        this.level.placeEnemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), engine.getRandom());
+        //add levels to world
+        this.world.addLevels(engine);
         
         //create new mario
         if (this.mario == null)
@@ -97,11 +94,8 @@ public final class Manager implements IManager
             this.mario.setDimensions();
         }
         
-        //set the start location of the hero
-        this.mario.setLocation(level.getX(4), level.getY(level.getTiles().getFloorRow()) - mario.getHeight());
-        
-        //create new heads up display
-        this.hud = new Hud(engine.getResources().getGameImage(GameImages.Keys.Hud), getWindow(), mario, level);
+        //set the hero to start at beginning of current level
+        this.world.setStart(mario);
         
         //create new object to manage input
         this.input = new Input();
@@ -112,9 +106,9 @@ public final class Manager implements IManager
         return this.mario;
     }
     
-    public Level getLevel()
+    public World getWorld()
     {
-        return this.level;
+        return this.world;
     }
     
     @Override
@@ -144,16 +138,10 @@ public final class Manager implements IManager
             mario = null;
         }
         
-        if (level != null)
+        if (world != null)
         {
-            level.dispose();
-            level = null;
-        }
-        
-        if (hud != null)
-        {
-            hud.dispose();
-            hud = null;
+            world.dispose();
+            world = null;
         }
     }
     
@@ -176,14 +164,9 @@ public final class Manager implements IManager
             mario.update(engine);
         }
         
-        if (level != null)
+        if (world != null)
         {
-            level.update(engine);
-        }
-        
-        if (hud != null)
-        {
-            hud.update(engine);
+            world.update(engine);
         }
     }
     
@@ -197,14 +180,9 @@ public final class Manager implements IManager
         //set the font
         graphics.setFont(font);
         
-        if (level != null)
+        if (world != null)
         {
-            level.render(graphics);
-        }
-        
-        if (hud != null)
-        {
-            hud.render(graphics);
+            world.render(graphics);
         }
         
         if (mario != null)

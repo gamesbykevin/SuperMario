@@ -5,9 +5,10 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
+import java.util.List;
 import java.util.Random;
 
 public final class TurtleRedWings extends Enemy
@@ -248,6 +249,9 @@ public final class TurtleRedWings extends Enemy
             if (checkCollisionEast(tiles) != null)
                 turnAround();
         }
+        
+        //make sure enemy can hurt others if kicked
+        setHurtEnemies(isAnimation(State.Kicked));
         
         //if moving east or west check if going to fall off edge
         if (isAnimation(State.Walking))

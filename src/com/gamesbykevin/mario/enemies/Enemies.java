@@ -3,10 +3,10 @@ package com.gamesbykevin.mario.enemies;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.engine.Engine;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.LevelCreatorHelper;
-import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.LevelCreatorHelper;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
@@ -65,6 +65,11 @@ public final class Enemies implements Disposable, IElement
         
         //store window for a.i. logic and to determine what is rendered
         this.boundary = boundary;
+    }
+    
+    public List<Enemy> getEnemies()
+    {
+        return this.enemies;
     }
     
     @Override
@@ -209,7 +214,9 @@ public final class Enemies implements Disposable, IElement
                                 {
                                     //we have verified everything, finally decide at random if we are to add enemy
                                     if (random.nextInt(ADD_ENEMY_PROBABILITY) == 0)
+                                    {
                                         add(x, tileY, Type.values()[random.nextInt(Type.values().length - 2)], random);
+                                    }
                                 }
                             }
                         }
@@ -411,9 +418,6 @@ public final class Enemies implements Disposable, IElement
                     throw new Exception("Enemy type not setup here: " + type.toString());
             }
             
-            if (type == Type.FireballBros)
-                System.out.println("Added " + type.toString());
-            
             //store the sprite sheet
             enemy.setImage(image);
             
@@ -454,7 +458,7 @@ public final class Enemies implements Disposable, IElement
             }
             
             //even if we don't update the enemy we still need to adjust for scrolling
-            enemy.setX(enemy.getX() + engine.getManager().getLevel().getScrollX());
+            enemy.setX(enemy.getX() + engine.getManager().getWorld().getLevel().getScrollX());
             
             //if the enemy is at least a screen away don't update
             if (enemy.getX() + enemy.getWidth()  < boundary.x - (boundary.width * 1))

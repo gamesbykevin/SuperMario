@@ -4,7 +4,7 @@ import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.Level;
+import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.projectiles.Projectile;
 
 import java.awt.Graphics;
@@ -21,8 +21,8 @@ public abstract class Character extends Entity implements Disposable
     public static final double DEFAULT_JUMP_VELOCITY = 6;
     
     //the speed which the character can walk/run
-    public static final int DEFAULT_SPEED_WALK = 1;
-    public static final int DEFAULT_SPEED_RUN = 2;
+    public static final double DEFAULT_SPEED_WALK = 1;
+    public static final double DEFAULT_SPEED_RUN = 2;
     
     private final double speedWalk;
     private final double speedRun;

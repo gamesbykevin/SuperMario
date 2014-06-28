@@ -1,12 +1,10 @@
-package com.gamesbykevin.mario.level.hud;
+package com.gamesbykevin.mario.world.level.hud;
 
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
 import com.gamesbykevin.mario.shared.IElement;
 import java.awt.Color;
 
@@ -22,24 +20,20 @@ public final class Hud extends Entity implements Disposable, IElement
         Clock, Coin, Heart
     }
     
-    //object to reference our hero
-    private final Hero hero;
-    
-    //object to reference our level
-    private final Level level;
-    
     private boolean lightText = false;
     
     //where we will be drawing our information
     private final Point livesLocation, timerLocation, coinLocation;
     
-    public Hud(final Image image, final Rectangle window, final Hero hero, final Level level)
+    //the heroes number of lives and coins
+    private int lives, coin;
+    
+    //time remaining
+    private long remaining;
+    
+    public Hud(final Image image, final Rectangle window)
     {
         super.setImage(image);
-        
-        //set our reference variables
-        this.hero = hero;
-        this.level = level;
         
         //clock image
         super.addAnimation(Key.Clock, 1, 0, 0, 66, 66, 0, false);
@@ -58,8 +52,28 @@ public final class Hud extends Entity implements Disposable, IElement
         livesLocation   = new Point((int)(window.x + (window.width * .03)), y);
         timerLocation   = new Point((int)(window.x + (window.width * .24)), y);
         coinLocation    = new Point((int)(window.x + (window.width * .50)), y);
+    }
+    
+    @Override
+    public void update(final Engine engine)
+    {
+        //coin is the only visual motion animation, so set it as current so it can be updated
+        super.setAnimation(Key.Coin, false);
         
-        switch (level.getBackground().getType())
+        //update animation
+        super.update(engine.getMain().getTime());
+        
+        //store the lives
+        lives = engine.getManager().getMario().getLives();
+        
+        //store the coins
+        coin = engine.getManager().getMario().getCoin();
+        
+        //determine the time left
+        remaining = engine.getManager().getWorld().getLevel().getTimer().getRemaining();
+        
+        //determine the color of text that is to be displayed
+        switch (engine.getManager().getWorld().getLevel().getBackground().getType())
         {
             case Background08:
             case Background10:
@@ -86,16 +100,6 @@ public final class Hud extends Entity implements Disposable, IElement
     }
     
     @Override
-    public void update(final Engine engine)
-    {
-        //coin is the only visual motion animation, so set it as current so it can be updated
-        super.setAnimation(Key.Coin, false);
-        
-        //update animation
-        super.update(engine.getMain().getTime());
-    }
-    
-    @Override
     public void dispose()
     {
         super.dispose();
@@ -116,16 +120,16 @@ public final class Hud extends Entity implements Disposable, IElement
         super.setAnimation(Key.Heart, false);
         super.setLocation(livesLocation);
         super.draw(graphics);
-        graphics.drawString("" + hero.getLives(), livesLocation.x + (int)getWidth() + 3, livesLocation.y + (int)getHeight());
+        graphics.drawString("" + lives, livesLocation.x + (int)getWidth() + 3, livesLocation.y + (int)getHeight());
         
         super.setAnimation(Key.Clock, false);
         super.setLocation(timerLocation);
         super.draw(graphics);
-        graphics.drawString("" + (int)(level.getTimer().getRemaining() / Timers.NANO_SECONDS_PER_SECOND), timerLocation.x + (int)getWidth() + 3, timerLocation.y + (int)getHeight());
+        graphics.drawString("" + (int)(remaining / Timers.NANO_SECONDS_PER_SECOND), timerLocation.x + (int)getWidth() + 3, timerLocation.y + (int)getHeight());
         
         super.setAnimation(Key.Coin, false);
         super.setLocation(coinLocation);
         super.draw(graphics);
-        graphics.drawString("" + hero.getCoin(), coinLocation.x + (int)getWidth() + 1, coinLocation.y + (int)getHeight());
+        graphics.drawString("" + coin, coinLocation.x + (int)getWidth() + 1, coinLocation.y + (int)getHeight());
     }
 }

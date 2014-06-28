@@ -1,5 +1,7 @@
-package com.gamesbykevin.mario.level;
+package com.gamesbykevin.mario.world.level;
 
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
@@ -8,8 +10,7 @@ import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.enemies.Enemies;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.tiles.*;
-import com.gamesbykevin.mario.level.powerups.PowerUps;
+import com.gamesbykevin.mario.world.level.powerups.PowerUps;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;

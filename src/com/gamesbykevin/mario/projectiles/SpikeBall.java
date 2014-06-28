@@ -4,7 +4,7 @@ package com.gamesbykevin.mario.projectiles;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.Level;
+import com.gamesbykevin.mario.world.level.Level;
 
 public final class SpikeBall extends Projectile
 {

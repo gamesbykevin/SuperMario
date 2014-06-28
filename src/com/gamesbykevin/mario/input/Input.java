@@ -101,6 +101,11 @@ public final class Input
                     mario.setHorizontalFlip(false);
                     mario.setIdle(true);
                 }
+                else
+                {
+                    //don't set idle
+                    mario.setHorizontalFlip(false);
+                }
             }
         }
         
@@ -120,6 +125,11 @@ public final class Input
                 {
                     mario.setHorizontalFlip(true);
                     mario.setIdle(true);
+                }
+                else
+                {
+                    //don't set idle
+                    mario.setHorizontalFlip(false);
                 }
             }
         }

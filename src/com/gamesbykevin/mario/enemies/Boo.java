@@ -1,7 +1,9 @@
 package com.gamesbykevin.mario.enemies;
 
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
+import com.gamesbykevin.mario.world.level.Level;
+
+import java.util.List;
 import java.util.Random;
 
 public class Boo extends Enemy
@@ -71,15 +73,15 @@ public class Boo extends Enemy
             if (!hero.hasHorizontalFlip())
             {
                 //hero is facing the ghost
-                super.setAnimation(State.Hiding, false);
+                setAnimation(State.Hiding, false);
             }
             else
             {
                 //hero is facing away so chase
-                super.setAnimation(State.Chasing, false);
+                setAnimation(State.Chasing, false);
                 
                 //move towards hero
-                super.setVelocityX(-getSpeedWalk());
+                setVelocityX(-getSpeedWalk());
                 
                 //move towards hero
                 setVelocityY(hero);
@@ -94,15 +96,15 @@ public class Boo extends Enemy
             if (hero.hasHorizontalFlip())
             {
                 //hero is facing the ghost
-                super.setAnimation(State.Hiding, false);
+                setAnimation(State.Hiding, false);
             }
             else
             {
                 //hero is facing away so chase
-                super.setAnimation(State.Chasing, false);
+                setAnimation(State.Chasing, false);
                 
                 //move towards hero
-                super.setVelocityX(getSpeedWalk());
+                setVelocityX(getSpeedWalk());
                 
                 //move towards hero
                 setVelocityY(hero);
@@ -119,12 +121,19 @@ public class Boo extends Enemy
      */
     private void setVelocityY(final Hero hero)
     {
-        if (hero.getY() > getY() && hero.getY() - getY() < SPEED)
-            setY(hero.getY());
-        if (getY() > hero.getY() && getY() - hero.getY() < SPEED)
-            setY(hero.getY());
-
         //set the correct y velocity
-        super.setVelocityY((getY() < hero.getY()) ? SPEED : -SPEED);
+        setVelocityY((getY() < hero.getY()) ? SPEED : -SPEED);
+        
+        if (hero.getY() > getY() && hero.getY() - getY() < SPEED)
+        {
+            setY(hero.getY());
+        }
+        else if (getY() > hero.getY() && getY() - hero.getY() < SPEED)
+        {
+            setY(hero.getY());
+        }
+        
+        if (getY() == hero.getY())
+            resetVelocityY();
     }
 }

@@ -5,9 +5,9 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
 public final class PlantFireball extends Projectile
 {
@@ -15,7 +15,7 @@ public final class PlantFireball extends Projectile
     private static final int FIREBALL_HEIGHT = 9;
     
     private static final double DEFAULT_VELOCITY_Y = 0.55;
-    private static final double DEFAULT_VELOCITY_X = DEFAULT_VELOCITY_Y * 1.5;;
+    private static final double DEFAULT_VELOCITY_X = DEFAULT_VELOCITY_Y * 1.85;
     
     public PlantFireball(final boolean north)
     {

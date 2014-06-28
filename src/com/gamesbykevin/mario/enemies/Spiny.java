@@ -3,9 +3,10 @@ package com.gamesbykevin.mario.enemies;
 import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
+
+import java.util.List;
 import java.util.Random;
 
 public class Spiny extends Enemy

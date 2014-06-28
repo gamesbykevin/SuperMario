@@ -1,13 +1,8 @@
 package com.gamesbykevin.mario.projectiles;
 
-import com.gamesbykevin.framework.util.Timers;
-
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
-import com.gamesbykevin.mario.entity.Entity;
-import com.gamesbykevin.mario.level.Level;
-import com.gamesbykevin.mario.level.tiles.Tile;
-import com.gamesbykevin.mario.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
 
 public final class Bullet extends Projectile
 {
@@ -47,7 +42,7 @@ public final class Bullet extends Projectile
         if (getRectangle().intersects(character.getRectangle()))
         {
             //make sure the character collides with the north and is jumping/falling, or invincible
-            if (character.isJumping() && checkCollisionNorthAny(character) || character.isInvincible())
+            if (checkCollisionNorthAny(character) || character.isInvincible())
             {
                 //if character is stomping on projectile it is dead
                 markDead();

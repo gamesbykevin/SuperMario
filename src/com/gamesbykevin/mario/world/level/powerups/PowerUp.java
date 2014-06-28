@@ -1,9 +1,9 @@
-package com.gamesbykevin.mario.level.powerups;
+package com.gamesbykevin.mario.world.level.powerups;
 
 import com.gamesbykevin.mario.entity.Entity;
 
-import com.gamesbykevin.mario.level.powerups.PowerUps.Type;
-import com.gamesbykevin.mario.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.powerups.PowerUps.Type;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
 
 public final class PowerUp extends Entity
 {
