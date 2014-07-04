@@ -8,6 +8,7 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.world.World;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.shared.IElement;
 
@@ -15,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Rectangle;
 import java.util.Random;
 
@@ -44,8 +46,8 @@ public abstract class Hero extends Character implements IElement, Disposable
     //our transparent image
     private BufferedImage transparentImage;
     
-    private static final double SCROLL_WEST_RATIO = .25;
-    private static final double SCROLL_EAST_RATIO = .65;
+    private static final double SCROLL_WEST_RATIO = .5;
+    private static final double SCROLL_EAST_RATIO = .5;
     
     //how long to wait until switching to other image
     private static final long INVINCIBLE_IMAGE_SWITCH_DELAY = Timers.toNanoSeconds(100L);
@@ -54,16 +56,23 @@ public abstract class Hero extends Character implements IElement, Disposable
     private static final long INVINCIBLE_DELAY = Timers.toNanoSeconds(10000L);
     
     //how long will mario be hurt before receiving damage again
-    private static final long HURT_DELAY = Timers.toNanoSeconds(5000L);
+    private static final long HURT_DELAY = Timers.toNanoSeconds(3000L);
+    
+    //how to pause the hero for victory
+    private static final long VICTORY_DELAY = Timers.toNanoSeconds(3000L);
     
     //how many coins are required for a new life
     private static final int COINS_PER_LIFE = 100;
     
+    //most lives the hero can have
     private static final int MAX_LIVES = 99;
+    
+    //dead over screen
+    private Image image;
     
     private enum TimerKey
     {
-        ImageSwitch, InvincibilityDuration, Hurt
+        ImageSwitch, InvincibilityDuration, Hurt, Victory
     }
     
     //do we switch between images
@@ -93,9 +102,12 @@ public abstract class Hero extends Character implements IElement, Disposable
         Dead, 
     }
     
-    protected Hero()
+    protected Hero(final long time)
     {
-        super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_WALK * 1.5, Character.DEFAULT_SPEED_RUN);
+        super(Character.DEFAULT_JUMP_VELOCITY, Character.DEFAULT_SPEED_RUN, Character.DEFAULT_SPEED_RUN);
+        
+        //setup timers
+        setupTimers(time);
         
         //setup animations
         defineAnimations();
@@ -167,6 +179,11 @@ public abstract class Hero extends Character implements IElement, Disposable
         }
     }
     
+    public void setGameOverImage(final Image image)
+    {
+        this.image = image;
+    }
+    
     public void setBig(final boolean big)
     {
         this.big = big;
@@ -190,6 +207,10 @@ public abstract class Hero extends Character implements IElement, Disposable
     public void setFire(final boolean fire)
     {
         this.fire = fire;
+        
+        //if not fire, remove any existing projectiles
+        if (!hasFire())
+            getProjectiles().clear();
     }
     
     public boolean hasFire()
@@ -203,6 +224,22 @@ public abstract class Hero extends Character implements IElement, Disposable
         this.timers.add(TimerKey.ImageSwitch, INVINCIBLE_IMAGE_SWITCH_DELAY);
         this.timers.add(TimerKey.InvincibilityDuration, INVINCIBLE_DELAY);
         this.timers.add(TimerKey.Hurt, HURT_DELAY);
+        this.timers.add(TimerKey.Victory, VICTORY_DELAY);
+        
+        try
+        {
+            //make sure all timers are setup
+            for (int i = 0; i < TimerKey.values().length; i++)
+            {
+                if (timers.getTimer(TimerKey.values()[i]) == null)
+                    throw new Exception("Timer not setup here: " + TimerKey.values()[i].toString());
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        
         this.timers.reset();
     }
     
@@ -264,6 +301,27 @@ public abstract class Hero extends Character implements IElement, Disposable
                 timers.update(TimerKey.Hurt);
             }
         }
+        
+        //if the hero has finished the level
+        if (hasVictory())
+        {
+            //if time has passed reset state(s)
+            if (timers.hasTimePassed(TimerKey.Victory))
+                setMiniMapDefaults();
+            
+            //update timer
+            timers.update(TimerKey.Victory);
+        }
+    }
+    
+    private void setMiniMapDefaults()
+    {
+        setVictory(false);
+        setInvincible(false);
+        setHurt(false);
+        setWalk(false);
+        setRun(false);
+        setIdle(true);
     }
     
     public void setLives(final int lives)
@@ -278,6 +336,11 @@ public abstract class Hero extends Character implements IElement, Disposable
     public int getLives()
     {
         return this.lives;
+    }
+    
+    public boolean hasLives()
+    {
+        return (getLives() > 0);
     }
     
     public void addCoin()
@@ -300,23 +363,28 @@ public abstract class Hero extends Character implements IElement, Disposable
     @Override
     public void update(final Engine engine)
     {
-        //get the current level
-        final Level level = engine.getManager().getWorld().getLevel();
+        //update parent entity
+        super.update(engine.getMain().getTime());
         
-        if (timers == null)
-            setupTimers(engine.getMain().getTime());
+        //update location
+        super.update();
+        
+        //if we are displaying the mini-map, don't continue
+        if (engine.getManager().getWorld().getMap().isDisplayed())
+            return;
+        
+        //if the user is playing a game don't continue
+        if (engine.getManager().getWorld().isPlayingGame())
+            return;
+        
+        //get the current level
+        final Level level = engine.getManager().getWorld().getLevels().getLevel();
         
         //update our timers
         updateTimers();
         
         //are we currently jumping/falling
         this.jumping = super.isJumping();
-        
-        //update parent entity
-        super.update(engine.getMain().getTime());
-        
-        //update location
-        super.update();
         
         //apply gravity
         applyGravity(level.getTiles());
@@ -325,7 +393,11 @@ public abstract class Hero extends Character implements IElement, Disposable
         {
             //check the heroes collision with the level
             checkLevelCollision(level, engine.getRandom());
-
+            
+            //if the timer has finished mark the hero dead
+            if (level.hasTimePassed())
+                markDead();
+            
             //if the hero is off the screen, we are dead
             if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
                 markDead();
@@ -333,9 +405,49 @@ public abstract class Hero extends Character implements IElement, Disposable
             //manage power up collision
             level.getPowerUps().manageHeroCollision(level, this);
         }
+
+        if (isDead())
+        {
+            //if the hero is dead and off the screen, reset and go back to the display map
+            if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
+            {
+                //reset all 
+                reset();
+                
+                //reset all keyboard input
+                engine.getKeyboard().reset();
+                
+                //switch back to mini-map
+                switchBack(engine.getManager().getWorld());
+                
+                //don't continue
+                return;
+            }
+        }
         
         //make sure correct animation is set
         checkAnimation();
+        
+        if (hasVictory())
+        {
+            //prevent from moving
+            resetVelocity();
+            
+            //pause for a short time before moving back to mini-map
+            if (timers.hasTimePassed(TimerKey.Victory))
+            {
+                setMiniMapDefaults();
+                
+                //flag complete
+                engine.getManager().getWorld().getMap().markLevelComplete();
+
+                //switch back to mini-map
+                switchBack(engine.getManager().getWorld());
+            }
+            
+            //don't continue
+            return;
+        }
         
         //check if we are to scroll the level
         checkScroll(level, engine.getManager().getWindow());
@@ -351,60 +463,107 @@ public abstract class Hero extends Character implements IElement, Disposable
         }
     }
     
+    public void switchBack(final World world)
+    {
+        setMiniMapDefaults();
+        
+        //set world options
+        world.getMap().setDisplayed(true);
+        world.getMatching().setDisplayed(false);
+        world.getSlot().setDisplayed(false);
+        world.setStart(this);
+        
+        //remove any existing projectiles the hero may have
+        getProjectiles().clear();
+    }
+    
+    /**
+     * Set the character defaults
+     */
+    public void reset()
+    {
+        this.setIdle(true);
+        this.setDead(false);
+        this.setHurt(false);
+        this.unflagDamage();
+        this.setBig(false);
+        this.setFire(false);
+        this.setInvincible(false);
+        this.setDuck(false);
+        this.setAttack(false);
+        this.setRun(false);
+        this.setWalk(false);
+        this.setJump(false);
+        this.setVictory(false);
+        this.setAnimation(AnimationHelper.getDefaultAnimation(this), true);
+        this.resetVelocity();
+        super.getProjectiles().clear();
+    }
+    
     private void checkLevelCollision(final Level level, final Random random)
     {
         Tiles tiles = level.getTiles();
         
-        Tile south = checkCollisionSouth(tiles);
-
-        //if we hit a tile at our feet, make sure to stop
-        if (south != null)
+        if (hasVelocityY())
         {
-            if (super.isJumping())
-                super.stopJumping();
+            Tile south = checkCollisionSouth(tiles);
 
-            if (south.getType() == Tiles.Type.Goal)
+            //if we hit a tile at our feet, make sure to stop
+            if (south != null)
             {
-                //set as complete
-                tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
+                if (super.isJumping())
+                    super.stopJumping();
 
-                //mark level as complete
-                level.setComplete(true);
-
-                //stop the level timer
-                level.pauseTimer();
-                
-                //stop moving
-                resetVelocity();
-                
-                //set animation
-                setVictory(true);
-            }
-
-            if (!isInvincible())
-            {
-                if (south.hasDeath())
+                //we hit the goal so the level is complete
+                if (south.getType() == Tiles.Type.Goal)
                 {
-                    switch (south.getType())
-                    {
-                        case Lava:
-                        case Water1:
-                        case Water2:
-                            markDead();
-                            setY(south.getY() - Tile.HEIGHT);
-                            break;
-                    }
+                    //set as complete
+                    tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
+
+                    //mark level as complete
+                    level.markComplete();
+
+                    //stop the level timer
+                    level.pauseTimer();
+
+                    //don't scroll the level
+                    level.setScrollX(SPEED_NONE);
+
+                    //stop moving
+                    resetVelocity();
+
+                    //set animation
+                    setVictory(true);
+
+                    //reset timer
+                    timers.getTimer(TimerKey.Victory).reset();
                 }
-                else if (south.hasDamage())
+
+                if (!isInvincible())
                 {
-                    switch (south.getType())
+                    if (south.hasDeath())
                     {
-                        case RotatingGear:
-                        case RotatingGear2:
-                        case SpikesUp1:
-                        case SpikesUp2:
-                            markHurt();
-                            break;
+                        switch (south.getType())
+                        {
+                            case Lava:
+                            case Water1:
+                            case Water2:
+                                markDead();
+                                setY(south.getY() - Tile.HEIGHT);
+                                break;
+                        }
+                    }
+                    else if (south.hasDamage())
+                    {
+                        switch (south.getType())
+                        {
+                            case RotatingGear:
+                            case RotatingGear2:
+                            case SpikesUp1:
+                            case SpikesUp2:
+                                markHurt();
+                                break;
+                        }
                     }
                 }
             }
@@ -579,6 +738,9 @@ public abstract class Hero extends Character implements IElement, Disposable
         
         //jump off the screen
         startJump();
+        
+        //lose 1 life
+        setLives(getLives() - 1);
     }
     
     /**
@@ -607,7 +769,9 @@ public abstract class Hero extends Character implements IElement, Disposable
         }
         
         if (!hasVelocityX() || isIdle())
+        {
             level.setScrollX(Character.SPEED_NONE);
+        }
     }
     
     /**
@@ -674,34 +838,43 @@ public abstract class Hero extends Character implements IElement, Disposable
     @Override
     public void render(final Graphics graphics)
     {
-        if (isInvincible())
+        if (!hasLives())
         {
-            //we will alternate between the images when invincible
-            if (switchImage)
-            {
-                //draw same image with bitmask applied
-                super.draw(graphics, invincibleImage);
-            }
-            else
-            {
-                //draw default image
-                super.draw(graphics);
-            }
-        }
-        else if (isDead())
-        {
-            super.draw(graphics);
-        }
-        else if (isHurt())
-        {
-            super.draw(graphics, transparentImage);
+            //if no lives draw game over screen
+            graphics.drawImage(image, 0, 0, null);
         }
         else
         {
-            super.draw(graphics);
+            if (isInvincible())
+            {
+                //we will alternate between the images when invincible
+                if (switchImage)
+                {
+                    //draw same image with bitmask applied
+                    super.draw(graphics, invincibleImage);
+                }
+                else
+                {
+                    //draw default image
+                    super.draw(graphics);
+                }
+            }
+            else if (isDead())
+            {
+                super.draw(graphics);
+            }
+            else if (isHurt())
+            {
+                super.draw(graphics, transparentImage);
+            }
+            else
+            {
+                super.draw(graphics);
+            }
+
+            //draw projectiles
+            super.renderProjectiles(graphics, null);
         }
-        
-        //draw projectiles
-        super.renderProjectiles(graphics, null);
     }
+        
 }

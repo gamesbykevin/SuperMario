@@ -75,14 +75,14 @@ public final class CustomMenu extends Menu implements IElement
     private FontManager fonts;
     
     //the default font size
-    private static final float DEFAULT_FONT_SIZE = 20;
+    private static final float DEFAULT_FONT_SIZE = 12;
     
     /**
      * Unique id's used to access the resources and must match the id in the xml file
      */
     private enum FontKey
     {
-        MenuFont
+        Menu
     }
     
     //the mouse images are provided in this node name
@@ -124,7 +124,7 @@ public final class CustomMenu extends Menu implements IElement
         fonts.verifyLocations(FontKey.values());
         
         //get the font just added and change the Font Size
-        fonts.set(FontKey.MenuFont, fonts.get(FontKey.MenuFont).deriveFont(DEFAULT_FONT_SIZE));
+        fonts.set(FontKey.Menu, fonts.get(FontKey.Menu).deriveFont(DEFAULT_FONT_SIZE));
     }
     
     /**
@@ -265,7 +265,7 @@ public final class CustomMenu extends Menu implements IElement
     public void render(final Graphics graphics)
     {
         //set menu font
-        graphics.setFont(fonts.get(FontKey.MenuFont));
+        graphics.setFont(fonts.get(FontKey.Menu));
         
         //draw menu
         super.render(graphics);

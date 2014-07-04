@@ -273,6 +273,30 @@ public final class Enemies implements Disposable, IElement
         }
     }
     
+    public void moveEnemies(final double x, final double y)
+    {
+        for (int i = 0; i < enemies.size(); i++)
+        {
+            //get current enemy
+            Enemy enemy = enemies.get(i);
+            
+            //move back
+            enemy.setLocation(enemy.getX() + x, enemy.getY() + y);
+        }
+    }
+    
+    public void removeProjectiles()
+    {
+        for (int i = 0; i < enemies.size(); i++)
+        {
+            //get current enemy
+            Enemy enemy = enemies.get(i);
+            
+            //remove all from enemy
+            enemy.getProjectiles().clear();
+        }
+    }
+    
     /**
      * Make sure this location has enough pixels between the closest enemy
      * @param x The x-coordinate we want to check
@@ -426,7 +450,7 @@ public final class Enemies implements Disposable, IElement
 
             //set location
             enemy.setLocation(x, y - enemy.getHeight());
-
+            
             //store the type of enemy
             enemy.setType(type);
 
@@ -450,15 +474,15 @@ public final class Enemies implements Disposable, IElement
             //if enemy has fallen off screen, or has been flagged as dead and not moving and no veritcal image flip
             if (enemy.getY() > boundary.y + boundary.height || enemy.isDead() && !enemy.hasVelocity() && !enemy.hasVerticalFlip())
             {
-                //remove from list
+                //remove enemy from list
                 enemies.remove(i);
                 
-                //move index back by 1
+                //move back to the previous index
                 i--;
             }
             
             //even if we don't update the enemy we still need to adjust for scrolling
-            enemy.setX(enemy.getX() + engine.getManager().getWorld().getLevel().getScrollX());
+            enemy.setX(enemy.getX() + engine.getManager().getWorld().getLevels().getLevel().getScrollX());
             
             //if the enemy is at least a screen away don't update
             if (enemy.getX() + enemy.getWidth()  < boundary.x - (boundary.width * 1))

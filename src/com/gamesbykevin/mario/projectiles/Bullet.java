@@ -42,7 +42,8 @@ public final class Bullet extends Projectile
         if (getRectangle().intersects(character.getRectangle()))
         {
             //make sure the character collides with the north and is jumping/falling, or invincible
-            if (checkCollisionNorthAny(character) || character.isInvincible())
+            if (checkCollisionNorthAny(character) && character.isJumping() && character.getVelocityY() > 0 ||
+                character.isInvincible())
             {
                 //if character is stomping on projectile it is dead
                 markDead();

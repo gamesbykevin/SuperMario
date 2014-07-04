@@ -424,6 +424,7 @@ public abstract class Entity extends Sprite implements Disposable
             return tile;
         }
         
+        //no tile found
         return null;
     }
     
@@ -447,6 +448,7 @@ public abstract class Entity extends Sprite implements Disposable
             return tile;
         }
         
+        //no tile found
         return null;
     }
     
@@ -475,6 +477,7 @@ public abstract class Entity extends Sprite implements Disposable
             }
         }
         
+        //no tile found
         return null;
     }
     
@@ -499,6 +502,7 @@ public abstract class Entity extends Sprite implements Disposable
             return tile;
         }
         
+        //no tile found
         return null;
     }
     
@@ -527,6 +531,7 @@ public abstract class Entity extends Sprite implements Disposable
             }
         }
         
+        //no tile found
         return null;
     }
     
@@ -563,6 +568,11 @@ public abstract class Entity extends Sprite implements Disposable
     public boolean isDead()
     {
         return this.dead;
+    }
+    
+    public void setDead(final boolean dead)
+    {
+        this.dead = dead;
     }
     
     @Override

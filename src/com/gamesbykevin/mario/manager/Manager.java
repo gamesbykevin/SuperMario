@@ -32,20 +32,17 @@ import java.util.Random;
  */
 public final class Manager implements IManager
 {
-    //the area where gameplay will occur
+    //where gameplay occurs
     private Rectangle window;
     
-    //object representing our hero
+    //our hero
     private Hero mario;
     
     //the world
     private World world;
     
-    //here we will manage the keyboard input in the game
+    //manage keyboard input
     private Input input;
-    
-    //the game font
-    private Font font;
     
     /**
      * Constructor for Manager, this is the point where we load any menu option configurations
@@ -57,48 +54,36 @@ public final class Manager implements IManager
         //set the game window where game play will occur
         setWindow(engine.getMain().getScreen());
 
-        //get the game font
-        this.font = engine.getResources().getFont(GameFont.Keys.GameFont).deriveFont(12f);
+        //create new world
+        this.world = new World();
         
+        //create new mario
+        this.mario = new Mario(engine.getMain().getTime());
+        this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
+        this.mario.setGameOverImage(engine.getResources().getGameImage(GameImages.Keys.GameOverScreen));
+        this.mario.createMiscImages();
+        this.mario.setDimensions();
         
+        //create object to manage input
+        this.input = new Input();
         
         //get the menu object
         //final Menu menu = engine.getMenu();
 
         //get index of option selected
         //menu.getOptionSelectionIndex(CustomMenu.LayerKey.Options, CustomMenu.OptionKey.Lives)
-                
-        //create new game
-        reset(engine);
     }
     
     @Override
     public void reset(final Engine engine) throws Exception
     {
-        //create new world
-        if (this.world == null)
-        {
-            //create new world
-            this.world = new World();
-        }
-        
-        //add levels to world
-        this.world.addLevels(engine);
-        
-        //create new mario
-        if (this.mario == null)
-        {
-            this.mario = new Mario();
-            this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
-            this.mario.createMiscImages();
-            this.mario.setDimensions();
-        }
-        
-        //set the hero to start at beginning of current level
-        this.world.setStart(mario);
-        
-        //create new object to manage input
-        this.input = new Input();
+        //set world to reset
+        getWorld().reset(engine.getRandom());
+    }
+    
+    public Input getInput()
+    {
+        return this.input;
     }
     
     public Hero getMario()
@@ -129,8 +114,11 @@ public final class Manager implements IManager
     @Override
     public void dispose()
     {
-        if (getWindow() != null)
-            this.window = null;
+        if (window != null)
+            window = null;
+        
+        if (input != null)
+            input = null;
         
         if (mario != null)
         {
@@ -146,27 +134,34 @@ public final class Manager implements IManager
     }
     
     /**
-     * Update all application elements
-     * 
-     * @param engine Our main game engine
+     * Update all elements
+     * @param engine Our game engine
      * @throws Exception 
      */
     @Override
     public void update(final Engine engine) throws Exception
     {
-        if (input != null)
+        //only update if the hero has lives
+        if (getMario().hasLives())
         {
-            input.update(engine);
-        }
-        
-        if (mario != null)
-        {
-            mario.update(engine);
-        }
-        
-        if (world != null)
-        {
-            world.update(engine);
+            if (getWorld().isComplete())
+            {
+                getInput().update(engine);
+                getMario().update(engine);
+                getWorld().update(engine);
+            }
+            else
+            {
+                //update world generation
+                getWorld().update(engine);
+
+                //reset game if world generation is complete
+                if (getWorld().isComplete())
+                {
+                    //position mario accordingly
+                    getWorld().setStart(getMario());
+                }
+            }
         }
     }
     
@@ -177,17 +172,24 @@ public final class Manager implements IManager
     @Override
     public void render(final Graphics graphics)
     {
-        //set the font
-        graphics.setFont(font);
-        
-        if (world != null)
+        if (!getMario().hasLives())
         {
-            world.render(graphics);
+            getMario().render(graphics);
         }
-        
-        if (mario != null)
+        else
         {
-            mario.render(graphics);
+            //draw world objects/creation progress
+            getWorld().render(graphics);
+
+            //is the world creation complete
+            if (getWorld().isComplete())
+            {
+                //don't draw mario when we are playing the games
+                if (!getWorld().isPlayingGame())
+                {
+                    getMario().render(graphics);
+                }
+            }
         }
     }
 }

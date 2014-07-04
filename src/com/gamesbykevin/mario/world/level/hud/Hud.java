@@ -6,8 +6,9 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.shared.IElement;
-import java.awt.Color;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
@@ -31,8 +32,14 @@ public final class Hud extends Entity implements Disposable, IElement
     //time remaining
     private long remaining;
     
-    public Hud(final Image image, final Rectangle window)
+    //the font for the hud
+    private Font font;
+    
+    public Hud(final Image image, final Rectangle window, final Font font)
     {
+        //create font for hud
+        this.font = font.deriveFont(12f);        
+        
         super.setImage(image);
         
         //clock image
@@ -70,10 +77,10 @@ public final class Hud extends Entity implements Disposable, IElement
         coin = engine.getManager().getMario().getCoin();
         
         //determine the time left
-        remaining = engine.getManager().getWorld().getLevel().getTimer().getRemaining();
+        remaining = engine.getManager().getWorld().getLevels().getLevel().getTimer().getRemaining();
         
         //determine the color of text that is to be displayed
-        switch (engine.getManager().getWorld().getLevel().getBackground().getType())
+        switch (engine.getManager().getWorld().getLevels().getLevel().getBackground().getType())
         {
             case Background08:
             case Background10:
@@ -103,6 +110,9 @@ public final class Hud extends Entity implements Disposable, IElement
     public void dispose()
     {
         super.dispose();
+        
+        if (font != null)
+            font = null;
     }
     
     @Override
@@ -116,6 +126,9 @@ public final class Hud extends Entity implements Disposable, IElement
         {
             graphics.setColor(Color.WHITE);
         }
+        
+        //set the appropriate font
+        graphics.setFont(font);
         
         super.setAnimation(Key.Heart, false);
         super.setLocation(livesLocation);

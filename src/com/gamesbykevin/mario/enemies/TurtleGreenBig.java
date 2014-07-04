@@ -8,7 +8,6 @@ import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
-import java.util.List;
 import java.util.Random;
 
 public final class TurtleGreenBig extends Enemy

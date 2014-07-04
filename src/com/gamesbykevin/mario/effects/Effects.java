@@ -63,6 +63,11 @@ public final class Effects implements Disposable
         effects.add(effect);
     }
     
+    public void removeAll()
+    {
+        effects.clear();
+    }
+    
     public void update(final long time, final double scrollX)
     {
         for (int i = 0; i < effects.size(); i++)

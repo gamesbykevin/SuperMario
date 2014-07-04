@@ -16,7 +16,7 @@ public final class GameFont extends FontManager
      */
     public enum Keys
     {
-        GameFont
+        Hud, Map
     }
     
     public GameFont() throws Exception

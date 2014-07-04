@@ -38,6 +38,9 @@ public final class Engine implements KeyListener, MouseMotionListener, MouseList
     //default font
     private Font font;
     
+    //seed for the Random object
+    private final long seed = System.nanoTime();
+    
     /**
      * The Engine that contains the game/menu objects
      * 
@@ -54,9 +57,6 @@ public final class Engine implements KeyListener, MouseMotionListener, MouseList
         
         //object used to track keyboard input
         this.keyboard = new Keyboard();
-        
-        //seed used to generate random numbers
-        final long seed = System.nanoTime();
         
         //create new Random object
         random = new Random(seed);
@@ -170,6 +170,11 @@ public final class Engine implements KeyListener, MouseMotionListener, MouseList
         {
             e.printStackTrace();
         }
+    }
+    
+    public long getSeed()
+    {
+        return this.seed;
     }
     
     /**

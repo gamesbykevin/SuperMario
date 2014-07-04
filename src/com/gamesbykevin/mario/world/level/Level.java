@@ -1,7 +1,5 @@
 package com.gamesbykevin.mario.world.level;
 
-import com.gamesbykevin.mario.world.level.tiles.Tile;
-import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
@@ -11,6 +9,8 @@ import com.gamesbykevin.mario.enemies.Enemies;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.world.level.powerups.PowerUps;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
@@ -52,6 +52,9 @@ public final class Level implements Disposable, IElement
     //is the level complete
     private boolean complete = false;
     
+    //are we to not have enemies
+    private boolean hide = false;
+    
     //our level timer
     private Timer timer;
     
@@ -73,6 +76,16 @@ public final class Level implements Disposable, IElement
         startTimer();
     }
     
+    public void hideEnemies()
+    {
+        this.hide = true;
+    }
+    
+    public void showEnemies()
+    {
+        this.hide = false;
+    }
+    
     public void startTimer()
     {
         timer.setPause(false);
@@ -92,14 +105,21 @@ public final class Level implements Disposable, IElement
             timer.setRemaining(0);
     }
     
+    /**
+     * Has the level been solved
+     * @return true if hero hit goal switch, false otherwise
+     */
     public boolean isComplete()
     {
         return this.complete;
     }
     
-    public void setComplete(final boolean complete)
+    /**
+     * Mark the level as solved
+     */
+    public void markComplete()
     {
-        this.complete = complete;
+        this.complete = true;
     }
     
     /**
@@ -204,6 +224,15 @@ public final class Level implements Disposable, IElement
         return this.timer;
     }
     
+    /**
+     * Has the timer finished
+     * @return true if the timer has run out, false otherwise
+     */
+    public boolean hasTimePassed()
+    {
+        return getTimer().hasTimePassed();
+    }
+    
     public Background getBackground()
     {
         return this.background;
@@ -232,6 +261,36 @@ public final class Level implements Disposable, IElement
     public Rectangle getBoundary()
     {
         return this.boundary;
+    }
+    
+    /**
+     * Move all everything back to start coordinates
+     */
+    public void reset()
+    {
+        //x offset
+        final double x = getTiles().getTile(0, 0).getX();
+        
+        //reset level timer
+        getTimer().reset();
+        
+        //move tiles back
+        getTiles().moveTiles(-x, 0);
+        
+        //move enemies back as well
+        getEnemies().moveEnemies(-x, 0);
+        
+        //remove all projectiles
+        getEnemies().removeProjectiles();
+        
+        //move power ups back as well
+        getPowerUps().movePowerUps(-x, 0);
+        
+        //remove all effects
+        getEffects().removeAll();
+        
+        //stop scrolling
+        setScrollX(0);
     }
     
     @Override
@@ -286,9 +345,16 @@ public final class Level implements Disposable, IElement
         //update effects animation
         effects.update(engine.getMain().getTime(), getScrollX());
         
-        //if level is not complete update enemies
+        //if level is not solved
         if (!isComplete())
-            enemies.update(engine);
+        {
+            //if we aren't hiding the enemies
+            if (!hide)
+            {
+                //update enemies
+                enemies.update(engine);
+            }
+        }
         
         //update timer
         updateTimer(engine.getMain().getTime());
@@ -309,13 +375,21 @@ public final class Level implements Disposable, IElement
         //draw the effects
         effects.render(graphics);
         
-        //now draw the enemies
-        enemies.render(graphics);
+        //if we are not hiding enemies
+        if (!hide)
+        {
+            //now draw the enemies
+            enemies.render(graphics);
+        }
         
         //draw solid level tiles after
         getTiles().renderSolidTiles(graphics, getBoundary());
         
-        //draw projectiles on top of solid tiles
-        enemies.renderProjectiles(graphics);
+        //if we are not hiding enemies
+        if (!hide)
+        {
+            //draw projectiles on top of solid tiles
+            enemies.renderProjectiles(graphics);
+        }
     }
 }

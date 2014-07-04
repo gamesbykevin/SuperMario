@@ -15,24 +15,108 @@ import java.awt.event.KeyEvent;
 public final class Input 
 {
     //the different key inputs
-    private static final int KEY_MOVE_RIGHT = KeyEvent.VK_RIGHT;
-    private static final int KEY_MOVE_LEFT  = KeyEvent.VK_LEFT;
-    private static final int KEY_MOVE_DOWN  = KeyEvent.VK_DOWN;
-    private static final int KEY_JUMP       = KeyEvent.VK_A;
-    private static final int KEY_RUN        = KeyEvent.VK_S;
-    private static final int KEY_FIREBALL   = KeyEvent.VK_D;
+    public static final int KEY_MOVE_RIGHT = KeyEvent.VK_RIGHT;
+    public static final int KEY_MOVE_LEFT  = KeyEvent.VK_LEFT;
+    public static final int KEY_MOVE_DOWN  = KeyEvent.VK_DOWN;
+    public static final int KEY_MOVE_UP    = KeyEvent.VK_UP;
+    public static final int KEY_JUMP       = KeyEvent.VK_A;
+    //public static final int KEY_RUN        = KeyEvent.VK_S;
+    public static final int KEY_FIREBALL   = KeyEvent.VK_S;
     
     public void update(final Engine engine)
     {
         //get mario object
         final Hero mario = engine.getManager().getMario();
+            
+        //get keyboard input
+        final Keyboard keyboard = engine.getKeyboard();
+        
+        //if the map is displayed we will move the hero accordingly
+        if (engine.getManager().getWorld().getMap().isDisplayed())
+        {
+            //make sure hero isn't already moving
+            if (!mario.hasVelocity())
+            {
+                //any one of these buttons can select the level
+                if (keyboard.hasKeyReleased(KEY_JUMP) || 
+                    //keyboard.hasKeyReleased(KEY_RUN) || 
+                    keyboard.hasKeyReleased(KEY_FIREBALL))
+                {
+                    //only start the level if we selected one
+                    if (engine.getManager().getWorld().getMap().hasLevelSelection())
+                    {
+                        //we no longer are displaying the map
+                        engine.getManager().getWorld().getMap().setDisplayed(false);
+                    
+                        //set the appropriate level
+                        engine.getManager().getWorld().setLevel();
+                        
+                        //position the hero appropriately
+                        engine.getManager().getWorld().setStart(mario);
+                    }
+                    else if (engine.getManager().getWorld().getMap().hasCardGameSelection())
+                    {
+                        //start card matching game
+                        engine.getManager().getWorld().getMatching().setDisplayed(true);
+                        
+                        //we no longer are displaying the map
+                        engine.getManager().getWorld().getMap().setDisplayed(false);
+                        
+                        //reset key input
+                        engine.getKeyboard().reset();
+                    }
+                    else if (engine.getManager().getWorld().getMap().hasMushroomHouseSelection())
+                    {
+                        //start mushroom game
+                        engine.getManager().getWorld().getSlot().setDisplayed(true);
+                        
+                        //we no longer are displaying the map
+                        engine.getManager().getWorld().getMap().setDisplayed(false);
+                        
+                        //reset key input
+                        engine.getKeyboard().reset();
+                    }
+                }
+                else
+                {
+                    if (keyboard.hasKeyPressed(KEY_MOVE_RIGHT))
+                    {
+                        mario.setVelocityX(mario.getSpeedWalk());
+                    }
+                    else if (keyboard.hasKeyPressed(KEY_MOVE_LEFT))
+                    {
+                        mario.setVelocityX(-mario.getSpeedWalk());
+                    }
+                    else if (keyboard.hasKeyPressed(KEY_MOVE_UP))
+                    {
+                        mario.setVelocityY(-mario.getSpeedWalk());
+                    }
+                    else if (keyboard.hasKeyPressed(KEY_MOVE_DOWN))
+                    {
+                        mario.setVelocityY(mario.getSpeedWalk());
+                    }
+                }
+            }
+            
+            //manage keyboard input
+            manageKeyboard(keyboard);
+        
+            //make the direction/location of hero
+            engine.getManager().getWorld().getMap().checkHero(mario);
+            
+            //no need to continue
+            return;
+        }
+        else
+        {
+            //if playing a mini game we won't track input here
+            if (engine.getManager().getWorld().isPlayingGame())
+                return;
+        }
         
         //if mario completed the level or has died, prevent movement
         if (mario.hasVictory() || mario.isDead())
             return;
-        
-        //get keyboard input
-        final Keyboard keyboard = engine.getKeyboard();
         
         if (keyboard.hasKeyPressed(KEY_MOVE_DOWN))
         {
@@ -59,6 +143,7 @@ public final class Input
                 mario.setVelocityX(mario.isRunning() ? mario.getSpeedRun() : mario.getSpeedWalk());
                 mario.setHorizontalFlip(false);
                 mario.setJump(true);
+                mario.setIdle(false);
             }
             else if (mario.canWalk())
             {
@@ -67,14 +152,14 @@ public final class Input
                 mario.setWalk(true);
             }
         }
-        
-        if (keyboard.hasKeyPressed(KEY_MOVE_LEFT))
+        else if (keyboard.hasKeyPressed(KEY_MOVE_LEFT))
         {
             if (mario.isJumping())
             {
                 mario.setVelocityX(mario.isRunning() ? -mario.getSpeedRun() : -mario.getSpeedWalk());
                 mario.setHorizontalFlip(true);
                 mario.setJump(true);
+                mario.setIdle(false);
             }
             else if (mario.canWalk())
             {
@@ -96,16 +181,11 @@ public final class Input
                     mario.setRun(false);
                 }
                 
+                mario.setHorizontalFlip(false);
+                
+                //if we aren't jumping set idle
                 if (!mario.isJumping())
-                {
-                    mario.setHorizontalFlip(false);
                     mario.setIdle(true);
-                }
-                else
-                {
-                    //don't set idle
-                    mario.setHorizontalFlip(false);
-                }
             }
         }
         
@@ -121,25 +201,18 @@ public final class Input
                     mario.setRun(false);
                 }
                 
+                mario.setHorizontalFlip(true);
+                
+                //if we aren't jumping set idle
                 if (!mario.isJumping())
-                {
-                    mario.setHorizontalFlip(true);
                     mario.setIdle(true);
-                }
-                else
-                {
-                    //don't set idle
-                    mario.setHorizontalFlip(false);
-                }
             }
         }
         
         if (keyboard.hasKeyPressed(KEY_JUMP))
         {
             if (mario.canJump())
-            {
                 mario.startJump();
-            }
         }
         
         if (keyboard.hasKeyReleased(KEY_JUMP))
@@ -148,6 +221,7 @@ public final class Input
                 mario.setVelocityY(-mario.getVelocityY());
         }
         
+        /*
         if (keyboard.hasKeyPressed(KEY_RUN))
         {
             if (mario.canRun())
@@ -157,7 +231,9 @@ public final class Input
                 mario.setRun(true);
             }
         }
+        */
         
+        /*
         if (keyboard.hasKeyReleased(KEY_RUN))
         {
             if (mario.isRunning())
@@ -176,6 +252,7 @@ public final class Input
                 }
             }
         }
+        */
         
         if (keyboard.hasKeyPressed(KEY_FIREBALL))
         {
@@ -202,6 +279,12 @@ public final class Input
             }
         }
         
+        //manage keyboard input
+        manageKeyboard(keyboard);
+    }
+    
+    public static void manageKeyboard(final Keyboard keyboard)
+    {
         /**
          * Remove any keys we are no longer using
          */
@@ -229,11 +312,13 @@ public final class Input
             keyboard.removeKeyReleased(KEY_JUMP);
         }
         
+        /*
         if (keyboard.hasKeyReleased(KEY_RUN))
         {
             keyboard.removeKeyPressed(KEY_RUN);
             keyboard.removeKeyReleased(KEY_RUN);
         }
+        */
         
         if (keyboard.hasKeyReleased(KEY_FIREBALL))
         {

@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <fonts>
-    <font id="GameFont">resources/font/game.ttf</font>
+    <font id="Hud">resources/font/game/Hud.ttf</font>
+    <font id="Map">resources/font/game/Map.ttf</font>
 </fonts>

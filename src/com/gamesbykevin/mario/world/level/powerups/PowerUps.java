@@ -13,7 +13,6 @@ import com.gamesbykevin.mario.heroes.Hero;
 
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -41,6 +40,18 @@ public final class PowerUps implements Disposable
         
         //create new list
         this.powerUps = new ArrayList<>();
+    }
+    
+    public void movePowerUps(final double x, final double y)
+    {
+        for (int i = 0; i < powerUps.size(); i++)
+        {
+            //get the current power up
+            PowerUp powerUp = powerUps.get(i);
+            
+            //move back
+            powerUp.setLocation(powerUp.getX() + x, powerUp.getY() + y);
+        }
     }
     
     /**

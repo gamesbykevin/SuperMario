@@ -1,27 +1,34 @@
 package com.gamesbykevin.mario.world;
 
-import com.gamesbykevin.mario.world.map.Map;
+import com.gamesbykevin.framework.resources.Progress;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.game.matching.Matching;
+import com.gamesbykevin.mario.game.slot.Slot;
 import com.gamesbykevin.mario.heroes.Hero;
-import com.gamesbykevin.mario.resources.GameImages;
-import com.gamesbykevin.mario.world.level.hud.Hud;
-import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.resources.GameFont;
 import com.gamesbykevin.mario.shared.IElement;
+import com.gamesbykevin.mario.shared.IProgress;
+import com.gamesbykevin.mario.resources.GameImages;
+import com.gamesbykevin.mario.shared.Shared;
+import com.gamesbykevin.mario.world.level.hud.Hud;
+import com.gamesbykevin.mario.world.map.Map;
 
 import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.util.Random;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public final class World implements Disposable, IElement
+public final class World implements Disposable, IElement, IProgress
 {
-    //the levels in the world
-    private List<Level> levels;
+    //the container for the levels
+    private Levels levels;
     
-    //the current level
-    private int index = 0;
+    //card matching game
+    private Matching matching;
+    
+    //slot game
+    private Slot slot;
     
     //the visual map
     private Map map;
@@ -29,69 +36,76 @@ public final class World implements Disposable, IElement
     //heads-up-display
     private Hud hud;
     
-    //how many levels can be in the world
-    private static final int LEVEL_COUNT_MIN = 5;
-    private static final int LEVEL_COUNT_MAX = 10;
+    //the number of bonus stages per world
+    public static final int BONUS_STAGES = 2;
     
-    //how big and small the screens are
-    private static final int LEVEL_SCREENS_MIN = 6;
-    private static final int LEVEL_SCREENS_MAX = 15;
+    //are all objects setup
+    private boolean complete = false;
+    
+    //track progress of creation
+    private Progress progress;
     
     public World()
     {
-        this.levels = new ArrayList<>();
+        try
+        {
+            //we have 4 different things to reset to create the world
+            this.progress = new Progress(4);
+            this.progress.setDescription("Creating World");
+            this.progress.setScreen(new Rectangle(0, 0, (int)(Shared.ORIGINAL_WIDTH * .55), (int)(Shared.ORIGINAL_HEIGHT * .75)));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
     
-    /**
-     * Add levels to the world, any previously existed levels will be removed
-     * @param engine Object that contains everything we need
-     */
-    public void addLevels(final Engine engine)
+    @Override
+    public boolean isComplete()
     {
-        //remove any existing levels
-        this.levels.clear();
-        
-        //determine a random number of levels
-        final int count = engine.getRandom().nextInt(LEVEL_COUNT_MAX - LEVEL_COUNT_MIN) + LEVEL_COUNT_MIN;
-        
-        for (int i = 0; i < count; i++)
-        {
-            //create new level starting at specified location
-            Level level = new Level(engine.getMain().getScreen());
-            
-            //determine the level size
-            final int screens = engine.getRandom().nextInt(LEVEL_SCREENS_MAX - LEVEL_SCREENS_MIN) + LEVEL_SCREENS_MIN;
+        return this.complete;
+    }
     
-            //create tiles of specified size
-            level.createTiles(
-                Level.LEVEL_COLUMNS_PER_SCREEN * screens, 
-                engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
-                engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
-                engine.getRandom());
-            level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
-            level.createEffects(engine.getResources().getGameImage(GameImages.Keys.Effects));
-            level.placeEnemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), engine.getRandom());
-            
-            //add level to collection
-            levels.add(level);
-        }
-        
-        //create hud
-        if (getHud() == null)
-        {
-            //create new heads up display
-            this.hud = new Hud(engine.getResources().getGameImage(GameImages.Keys.Hud), engine.getMain().getScreen());
-        }
+    @Override
+    public void setComplete(final boolean complete)
+    {
+        this.complete = complete;
+    }
+    
+    public boolean isPlayingGame()
+    {
+        return (slot.isDisplayed() || matching.isDisplayed());
     }
     
     /**
-     * Set the hero start at the beginning of a level
+     * Set the hero at the beginning of a level or on the mini-map.<br>
+     * This will depend if the mini-map is currently displayed.<br>
+     * This will also stop the hero velocity
      * @param hero The hero we want to place at the start of level
      */
     public void setStart(final Hero hero)
     {
-        //set the start location of the hero
-        hero.setLocation(getLevel().getX(4), getLevel().getY(getLevel().getTiles().getFloorRow()) - hero.getHeight());
+        if (getMap().isDisplayed())
+        {
+            //position on the map
+            getMap().resetHero(hero);
+        }
+        else
+        {
+            //set the start location of the hero
+            getLevels().placeHero(hero);
+        }
+        
+        //stop moving
+        hero.resetVelocity();
+    }
+    
+    /**
+     * Set the current level by where the hero is located on the map
+     */
+    public void setLevel()
+    {
+        getLevels().setLevel(getMap());
     }
     
     @Override
@@ -99,13 +113,7 @@ public final class World implements Disposable, IElement
     {
         if (levels != null)
         {
-            for (int i = 0; i < levels.size(); i++)
-            {
-                levels.get(i).dispose();
-                levels.set(i, null);
-            }
-            
-            levels.clear();
+            levels.dispose();
             levels = null;
         }
         
@@ -120,15 +128,18 @@ public final class World implements Disposable, IElement
             hud.dispose();
             hud = null;
         }
-    }
-    
-    /**
-     * Get the current level
-     * @return The current level
-     */
-    public Level getLevel()
-    {
-        return this.levels.get(index);
+        
+        if (slot != null)
+        {
+            slot.dispose();
+            slot = null;
+        }
+        
+        if (matching != null)
+        {
+            matching.dispose();
+            matching = null;
+        }
     }
     
     /**
@@ -140,33 +151,217 @@ public final class World implements Disposable, IElement
         return this.hud;
     }
     
+    public Map getMap()
+    {
+        return this.map;
+    }
+    
+    public Slot getSlot()
+    {
+        return this.slot;
+    }
+    
+    public Levels getLevels()
+    {
+        return this.levels;
+    }
+    
+    public Matching getMatching()
+    {
+        return this.matching;
+    }
+    
+    public void reset(final Random random)
+    {
+        //flag as not complete
+        setComplete(false);
+        
+        //re-create all levels
+        getLevels().reset(random);
+        
+        //flag as not complete
+        getMap().setComplete(false);
+        
+        //reset
+        getSlot().setReset();
+        
+        //reset
+        getMatching().setReset();
+        
+        //reset progress
+        progress.setCount(0);
+    }
+    
+    public void setup(final Engine engine)
+    {
+        if (getHud() == null)
+        {
+            //create new heads up display
+            hud = new Hud(
+                engine.getResources().getGameImage(GameImages.Keys.Hud), 
+                engine.getMain().getScreen(),
+                engine.getResources().getFont(GameFont.Keys.Hud));
+        }
+        
+        if (getLevels() == null || !getLevels().isComplete())
+        {
+            if (getLevels() == null)
+            {
+                final boolean hideEnemies = false;
+                
+                //create new levels object
+                levels = new Levels(hideEnemies);
+                
+                //re-create all levels
+                getLevels().reset(engine.getRandom());
+            }
+            else
+            {
+                //create levels if not complete yet
+                getLevels().update(engine);
+            }
+            
+            //increase our progress bar
+            progress.increase();
+        }
+        else if (getMap() == null || !getMap().isComplete())
+        {
+            if (getMap() == null)
+            {
+                //create the world map
+                map = new Map(
+                    engine.getResources().getGameImage(GameImages.Keys.WorldMap), 
+                    engine.getResources().getFont(GameFont.Keys.Map)
+                    );
+            }
+            else
+            {
+                //reset new map
+                getMap().reset(engine.getRandom(), getLevels().getCount());
+            }
+            
+            //increase our progress bar
+            progress.increase();
+        }
+        else if (getSlot() == null || getSlot().hasReset())
+        {
+            if (getSlot() == null)
+            {
+                //create slot game
+                slot = new Slot(engine.getResources().getGameImage(GameImages.Keys.GameSlot));
+            }
+            else
+            {
+                //reset game
+                getSlot().reset(engine.getRandom());
+            }
+            
+            //increase our progress bar
+            progress.increase();
+        }
+        else if (getMatching() == null || getMatching().hasReset())
+        {
+            if (getMatching() == null)
+            {
+                //create matching game
+                matching = new Matching(engine.getResources().getGameImage(GameImages.Keys.GameCardMatching));
+            }
+            else
+            {
+                //reset game
+                getMatching().reset(engine.getRandom());
+            }
+            
+            //increase our progress bar
+            progress.increase();
+        }
+        else
+        {
+            //everything is setup mark complete
+            setComplete(true);
+            
+            //mark as complete
+            progress.setComplete();
+        }
+    }
+    
     @Override
     public void update(final Engine engine)
     {
-        if (getLevel() != null)
+        if (!isComplete())
         {
-            //update the level
-            getLevel().update(engine);
+            //update creation
+            setup(engine);
         }
-        
-        if (getHud() != null)
+        else
         {
-            getHud().update(engine);
+            //update the map
+            if (getMap().isDisplayed())
+            {
+                getMap().update(engine);
+            }
+            else
+            {
+                //if playing slot game
+                if (getSlot().isDisplayed())
+                {
+                    getSlot().update(engine);
+                }
+                else if (getMatching().isDisplayed())
+                {
+                    getMatching().update(engine);
+                }
+                else
+                {
+                    //update the current level
+                    if (getLevels() != null)
+                        getLevels().update(engine);
+
+                    //update the h.u.d.
+                    if (getHud() != null)
+                        getHud().update(engine);
+                }
+            }
         }
     }
     
     @Override
     public void render(final Graphics graphics)
     {
-        if (getLevel() != null)
+        if (!isComplete())
         {
-            //draw the level
-            getLevel().render(graphics);
+            //draw progress
+            progress.render(graphics);
         }
-        
-        if (getHud() != null)
+        else
         {
-            getHud().render(graphics);
+            if (getMap().isDisplayed())
+            {
+                //draw the map
+                getMap().render(graphics);
+            }
+            else
+            {
+                //if playing slot game
+                if (getSlot().isDisplayed())
+                {
+                    getSlot().render(graphics);
+                }
+                else if (getMatching().isDisplayed())
+                {
+                    getMatching().render(graphics);
+                }
+                else
+                {
+                    //draw the current level
+                    if (getLevels() != null)
+                        getLevels().render(graphics);
+
+                    //draw h.u.d.
+                    if (getHud() != null)
+                        getHud().render(graphics);
+                }
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package com.gamesbykevin.mario.enemies;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.character.Character;
+import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
@@ -35,7 +36,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
     //when we first jump the rate which we move
     public static final double DEFAULT_JUMP_VELOCITY = 3;
     
-    public Enemy(final double jumpVelocity, final double speedWalk, final double speedRun)
+    protected Enemy(final double jumpVelocity, final double speedWalk, final double speedRun)
     {
         super(jumpVelocity, speedWalk, speedRun);
         
@@ -237,7 +238,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
     public void update(final Engine engine)
     {
         //get the current level
-        final Level level = engine.getManager().getWorld().getLevel();
+        final Level level = engine.getManager().getWorld().getLevels().getLevel();
         
         //update animation
         super.update(engine.getMain().getTime());
@@ -261,7 +262,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
         
         //check if this enemy can hurt others
         if (canHurtEnemies())
-            checkEnemyCollision(engine.getManager().getWorld().getLevel().getEnemies().getEnemies());
+            checkEnemyCollision(level);
         
         //get the hero
         final Hero hero = engine.getManager().getMario();
@@ -280,10 +281,13 @@ public abstract class Enemy extends Character implements Disposable, IElement
                 if (!hero.isHurt())
                 {
                     //check if this enemy was stomped on
-                    if (checkCollisionNorthAny(hero) && hero.getVelocityY() > 0)
+                    if (checkCollisionNorthAny(hero) && hero.hasVelocityY() && hero.getY() < getY())
                     {
                         if (hasWeaknessStomp())
                         {
+                            //mark as jumping
+                            hero.setJump(true);
+                            
                             //make the hero bounce off the enemy
                             hero.setVelocityY(-hero.getVelocityY());
                             
@@ -372,8 +376,10 @@ public abstract class Enemy extends Character implements Disposable, IElement
      * This is primarily used when the turtle shells have been kicked etc...
      * @param enemies Enemies we want to check for collision
      */
-    private void checkEnemyCollision(final List<Enemy> enemies)
+    private void checkEnemyCollision(final Level level)
     {
+        final List<Enemy> enemies = level.getEnemies().getEnemies();
+        
         //check if hit another enemy
         for (int i = 0; i < enemies.size(); i++)
         {
@@ -392,6 +398,9 @@ public abstract class Enemy extends Character implements Disposable, IElement
                 
                 //fall off screen
                 enemy.setTraditionalDeath();
+                
+                //add effect
+                level.getEffects().add(enemy, Effects.Type.BreakBrick);
             }
         }
     }

@@ -35,7 +35,7 @@ public final class Plant extends Enemy
     protected static final double DEFAULT_VELOCITY_Y = 0.25;
     
     //the range to determine if the enemy is to attack
-    private static final double PIXEL_RANGE_ATTACK = Tile.WIDTH * 6;
+    private static final double PIXEL_RANGE_ATTACK = Tile.WIDTH * (Level.LEVEL_COLUMNS_PER_SCREEN / 2);
     
     //the range to determine if the enemy is to hide
     private static final double PIXEL_RANGE_HIDE = Tile.WIDTH * 3.25;

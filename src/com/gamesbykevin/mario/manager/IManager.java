@@ -1,7 +1,8 @@
 package com.gamesbykevin.mario.manager;
 
-import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.framework.resources.Disposable;
+import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.shared.IProgress;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;

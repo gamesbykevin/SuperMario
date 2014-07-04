@@ -7,7 +7,6 @@ import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
-import java.util.List;
 
 import java.util.Random;
 

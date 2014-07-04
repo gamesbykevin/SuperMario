@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <menu>
     <!-- THE FONT USED FOR THE MENU -->
-    <font id="MenuFont">resources/font/menu.ttf</font>
+    <font id="Menu">resources/font/menu/menu.ttf</font>
     
     <!-- IMAGES FOR THE MOUSE -->
     <mouseImage id="Mouse">resources/images/menu/mouse.png</mouseImage>
@@ -28,7 +28,7 @@
         <pause>true</pause>
         <duration>10000</duration>
         <image>resources/images/menu/background.jpg</image>
-        <optionContainerRatio>0.85</optionContainerRatio>
+        <optionContainerRatio>0.90</optionContainerRatio>
         <title>Mario Bros</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
@@ -44,7 +44,7 @@
         <pause>true</pause>
         <duration>10000</duration>
         <image>resources/images/menu/background.jpg</image>
-        <optionContainerRatio>0.85</optionContainerRatio>
+        <optionContainerRatio>0.90</optionContainerRatio>
         <title>Options</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
@@ -118,7 +118,7 @@
         <duration></duration>
         <image></image>
         <optionContainerRatio>0.85</optionContainerRatio>
-        <title>Start Over?</title>
+        <title>Reset?</title>
         <options name="Yes" next="CreateNewGame" id="CreateNewGame"></options>
         <options name="No" next="OptionsInGame" id="OptionsInGame"></options>
     </layer>
