@@ -68,6 +68,8 @@ public final class Tile extends Entity implements Disposable
         }
     }
     
+    protected static final int TYPES_COUNT = Type.values().length;
+    
     protected Type getType()
     {
         return this.type;

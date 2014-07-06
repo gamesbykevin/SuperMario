@@ -334,9 +334,6 @@ public final class World implements Disposable, IElement, IProgress
                         
                         //mark to reset
                         reset(engine.getRandom());
-                        
-                        //increase the world number
-                        getMap().nextWorld();
                     }
                     
                     return;

@@ -22,14 +22,13 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
 public final class Map implements Disposable, IElement, Displayable, IProgress, IAudio
 {
     //list of all possible tiles
-    private HashMap<Tile.Type, Tile> tiles;
+    private List<Tile> tiles;
     
     //the image containing all the map tiles
     private Image image;
@@ -58,7 +57,7 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
     //the image we choose for the path
     private Tile.Type pathHorizontal, pathVertical;
     
-    //the tile for the background and moving backgrounf
+    //the tile for the background and moving background
     private Tile.Type background, backgroundMotion;
     
     //where the hero is/was/and is going to be
@@ -71,10 +70,12 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
     private boolean complete = false;
     
     //the world #
-    private int world = 1;
+    private int world = 0;
     
     //the font for displayed text
     private Font font;
+    
+    private String worldDescription = null;
     
     //do we need to play a sound
     private GameAudio.Keys audioKey = null, mapMusic = null;
@@ -105,16 +106,45 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         this.image = image;
 
         //create new HashMap
-        this.tiles = new HashMap<>();
+        this.tiles = new ArrayList<>();
 
         //create new array
         this.types = new Tile.Type[MAP_ROWS][MAP_COLS];
 
         //create a single instance of each tile type
-        for (int i = 0; i < Tile.Type.values().length; i++)
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
         {
-            this.tiles.put(Tile.Type.values()[i], new Tile(Tile.Type.values()[i]));
+            //add to list
+            add(new Tile(Tile.Type.values()[i]));
         }
+    }
+    
+    private void add(final Tile tile)
+    {
+        tiles.add(tile);
+    }
+    
+    
+    private Tile getTile(final int index)
+    {
+        return tiles.get(index);
+    }
+    
+    private Tile getTile(final Tile.Type type)
+    {
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
+        {
+            if (getTile(i).getType() == type)
+                return getTile(i);
+        }
+        
+        return null;
+    }
+    
+    private void setWorldDescription()
+    {
+        //assign the appropriate world description
+        worldDescription = (!hasSolved()) ? "World - " + world : "World - " + world + " (Complete)";
     }
     
     public void reset(final Random random, final int count)
@@ -123,6 +153,9 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         {
             //set background music for map
             mapMusic = GameAudio.getMapMusic(random);
+            
+            //set the world #
+            nextWorld();
             
             current.setCol(0);
             current.setRow(0);
@@ -190,6 +223,9 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
             //determine the background tile
             setupBackground(random);
 
+            //set the world description
+            setWorldDescription();
+            
             //mark complete
             setComplete(true);
             
@@ -234,7 +270,7 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
     /**
      * Increase the world #
      */
-    public void nextWorld()
+    private void nextWorld()
     {
         this.world++;
     }
@@ -302,11 +338,11 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         List<Tile.Type> options = new ArrayList<>();
         
         //add valid background tiles to list
-        for (int i = 0; i < Tile.Type.values().length; i++)
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
         {
-            if (Tile.isBackgroundTile(Tile.Type.values()[i]))
+            if (Tile.isBackgroundTile(getTile(i).getType()))
             {
-                options.add(Tile.Type.values()[i]);
+                options.add(getTile(i).getType());
             }
         }
         
@@ -317,11 +353,11 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         options.clear();
         
         //add valid background motion tiles to list
-        for (int i = 0; i < Tile.Type.values().length; i++)
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
         {
-            if (Tile.isBackgroundMotionTile(Tile.Type.values()[i]))
+            if (Tile.isBackgroundMotionTile(getTile(i).getType()))
             {
-                options.add(Tile.Type.values()[i]);
+                options.add(getTile(i).getType());
             }
         }
         
@@ -556,10 +592,10 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         //the different types of paths to choose from
         List<Tile.Type> paths = new ArrayList<>();
 
-        for (int i = 0; i < Tile.Type.values().length; i++)
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
         {
-            if (Tile.isPathTile(Tile.Type.values()[i]))
-                paths.add(Tile.Type.values()[i]);
+            if (Tile.isPathTile(getTile(i).getType()))
+                paths.add(getTile(i).getType());
         }
         
         //get random type
@@ -813,6 +849,10 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
     public void markLevelComplete()
     {
         types[(int)getCurrent().getRow()][(int)getCurrent().getCol()] = Tile.Type.LevelComplete;
+        
+        //update description in case map is solved
+        if (hasSolved())
+            setWorldDescription();
     }
     
     /**
@@ -865,10 +905,10 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
     {
         if (tiles != null)
         {
-            for (int i = 0; i < Tile.Type.values().length; i++)
+            for (int i = 0; i < Tile.TYPES_COUNT; i++)
             {
-                tiles.get(Tile.Type.values()[i]).dispose();
-                tiles.put(Tile.Type.values()[i], null);
+                tiles.get(i).dispose();
+                tiles.set(i, null);
             }
 
             tiles.clear();
@@ -896,11 +936,6 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
             font = null;
     }
     
-    private Tile getTile(final Tile.Type type)
-    {
-        return tiles.get(type);
-    }
-    
     @Override
     public void update(final Engine engine)
     {
@@ -917,10 +952,9 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
         }
         
         //update the tile animations/location
-        for (int i = 0; i < Tile.Type.values().length; i++)
+        for (int i = 0; i < Tile.TYPES_COUNT; i++)
         {
-            getTile(Tile.Type.values()[i]).update();
-            getTile(Tile.Type.values()[i]).update(engine);
+            getTile(i).update(engine);
         }
 
         final Hero hero = engine.getManager().getMario();
@@ -1004,21 +1038,19 @@ public final class Map implements Disposable, IElement, Displayable, IProgress, 
             }
         }
         
-        //white font color
-        graphics.setColor(Color.WHITE);
-        
-        //set the appropriate font
-        graphics.setFont(font);
-        
-        if (hasSolved())
+        if (worldDescription != null)
         {
-            //display the world #
-            graphics.drawString("World - " + world + " (Complete)", WORLD_DISPLAY.x, WORLD_DISPLAY.y);
-        }
-        else
-        {
-            //display the world #
-            graphics.drawString("World - " + world, WORLD_DISPLAY.x, WORLD_DISPLAY.y);
+            //white font color
+            graphics.setColor(Color.WHITE);
+            
+            if (graphics.getFont() != font)
+            {
+                //set the appropriate font
+                graphics.setFont(font);
+            }
+            
+            //display the world # description
+            graphics.drawString(worldDescription, WORLD_DISPLAY.x, WORLD_DISPLAY.y);
         }
         
         for (int row = 0; row < maze.getRows(); row++)

@@ -55,6 +55,12 @@ public final class Bullet extends Projectile
                 //stop moving
                 resetVelocity();
                 
+                if (character.isJumping())
+                {
+                    //bounce off projectile 
+                    character.setVelocityY(-character.getVelocityY());
+                }
+                
                 //start falling
                 startJump();
             }
