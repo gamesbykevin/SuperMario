@@ -145,6 +145,16 @@ public final class Manager implements IManager
             world.dispose();
             world = null;
         }
+        
+        try
+        {
+            //recycle objects
+            super.finalize();
+        }
+        catch (Throwable e)
+        {
+            e.printStackTrace();
+        }
     }
     
     /**

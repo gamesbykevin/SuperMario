@@ -309,8 +309,12 @@ public abstract class Enemy extends Character implements Disposable, IElement
                                 hero.setVelocityY(-hero.getVelocityY());
                             }
                             
-                            //mark enemy as dead?
-                            markHurt();
+                            //only bullet bill can't be hurt
+                            if (getType() != Enemies.Type.BulletBill)
+                            {
+                                //mark enemy as dead?
+                                markHurt();
+                            }
                         }
                         else
                         {
