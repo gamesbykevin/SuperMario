@@ -1,10 +1,14 @@
 package com.gamesbykevin.mario.input;
 
 import com.gamesbykevin.framework.input.Keyboard;
+import com.gamesbykevin.framework.util.Timer;
+import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.world.map.Map.Selection;
 import com.gamesbykevin.mario.projectiles.HeroFireball;
+import com.gamesbykevin.mario.resources.GameAudio;
 
 import java.awt.event.KeyEvent;
 
@@ -23,6 +27,21 @@ public final class Input
     //public static final int KEY_RUN        = KeyEvent.VK_S;
     public static final int KEY_FIREBALL   = KeyEvent.VK_S;
     
+    //time to wait until level appears
+    private static final long ENTER_LEVEL_DELAY = Timers.toNanoSeconds(1250L);
+    
+    //timer to track switch
+    private Timer timer;
+    
+    //the player selection
+    private Selection selection = null;
+    
+    public Input()
+    {
+        this.timer = new Timer(ENTER_LEVEL_DELAY);
+        this.timer.reset();
+    }
+    
     public void update(final Engine engine)
     {
         //get mario object
@@ -35,49 +54,35 @@ public final class Input
         if (engine.getManager().getWorld().getMap().isDisplayed())
         {
             //make sure hero isn't already moving
-            if (!mario.hasVelocity())
+            if (mario.hasVelocity())
+                return;
+            
+            //any one of these buttons can select the level
+            if (keyboard.hasKeyReleased(KEY_JUMP) || 
+                //keyboard.hasKeyReleased(KEY_RUN) || 
+                keyboard.hasKeyReleased(KEY_FIREBALL))
             {
-                //any one of these buttons can select the level
-                if (keyboard.hasKeyReleased(KEY_JUMP) || 
-                    //keyboard.hasKeyReleased(KEY_RUN) || 
-                    keyboard.hasKeyReleased(KEY_FIREBALL))
+                //make sure we didn't already make a selection
+                if (selection == null)
                 {
-                    //only start the level if we selected one
-                    if (engine.getManager().getWorld().getMap().hasLevelSelection())
+                    //get the type of tile selected
+                    selection = engine.getManager().getWorld().getMap().getSelection();
+
+                    //if a selection was made
+                    if (selection != null)
                     {
-                        //we no longer are displaying the map
-                        engine.getManager().getWorld().getMap().setDisplayed(false);
-                    
-                        //set the appropriate level
-                        engine.getManager().getWorld().setLevel();
-                        
-                        //position the hero appropriately
-                        engine.getManager().getWorld().setStart(mario);
-                    }
-                    else if (engine.getManager().getWorld().getMap().hasCardGameSelection())
-                    {
-                        //start card matching game
-                        engine.getManager().getWorld().getMatching().setDisplayed(true);
-                        
-                        //we no longer are displaying the map
-                        engine.getManager().getWorld().getMap().setDisplayed(false);
-                        
-                        //reset key input
-                        engine.getKeyboard().reset();
-                    }
-                    else if (engine.getManager().getWorld().getMap().hasMushroomHouseSelection())
-                    {
-                        //start mushroom game
-                        engine.getManager().getWorld().getSlot().setDisplayed(true);
-                        
-                        //we no longer are displaying the map
-                        engine.getManager().getWorld().getMap().setDisplayed(false);
-                        
-                        //reset key input
-                        engine.getKeyboard().reset();
+                        //stop all sound
+                        engine.getResources().stopAllSound();
+
+                        //play enter level sound effect
+                        engine.getResources().playGameAudio(GameAudio.Keys.SfxMapEnter);
                     }
                 }
-                else
+            }
+            else
+            {
+                //can only move if selection isn't already made
+                if (selection == null)
                 {
                     if (keyboard.hasKeyPressed(KEY_MOVE_RIGHT))
                     {
@@ -95,14 +100,73 @@ public final class Input
                     {
                         mario.setVelocityY(mario.getSpeedWalk());
                     }
+
+                    //check the direction/location of hero
+                    engine.getManager().getWorld().getMap().checkHero(mario);
+                }
+            }
+
+            if (selection != null)
+            {
+                //update timer
+                timer.update(engine.getMain().getTime());
+
+                //if time has passed make the switch
+                if (timer.hasTimePassed())
+                {
+                    try
+                    {
+                        switch (selection)
+                        {
+                            case Level:
+                                //we no longer are displaying the map
+                                engine.getManager().getWorld().getMap().setDisplayed(false);
+
+                                //set the appropriate level
+                                engine.getManager().getWorld().setLevel();
+
+                                //set audio to play
+                                engine.getManager().getWorld().getLevels().getLevel().assignBackgroundMusic();
+                                
+                                //position the hero appropriately
+                                engine.getManager().getWorld().setStart(mario);
+                                break;
+
+                            case SlotGame:
+                                //start mushroom game
+                                engine.getManager().getWorld().getSlot().setDisplayed(true);
+                                
+                                //we no longer are displaying the map
+                                engine.getManager().getWorld().getMap().setDisplayed(false);
+                                break;
+
+                            case MatchingGame:
+                                //start card matching game
+                                engine.getManager().getWorld().getMatching().setDisplayed(true);
+                                
+                                //we no longer are displaying the map
+                                engine.getManager().getWorld().getMap().setDisplayed(false);
+                                break;
+
+                            default:
+                                throw new Exception("Selection not setup here: " + selection.toString());
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    //reset the timer
+                    timer.reset();
+
+                    //no longer set selection
+                    selection = null;
                 }
             }
             
-            //manage keyboard input
-            manageKeyboard(keyboard);
-        
-            //make the direction/location of hero
-            engine.getManager().getWorld().getMap().checkHero(mario);
+            //reset key input
+            engine.getKeyboard().reset();
             
             //no need to continue
             return;
@@ -181,6 +245,7 @@ public final class Input
                     mario.setRun(false);
                 }
                 
+                //set direction to face
                 mario.setHorizontalFlip(false);
                 
                 //if we aren't jumping set idle
@@ -201,6 +266,7 @@ public final class Input
                     mario.setRun(false);
                 }
                 
+                //set direction to face
                 mario.setHorizontalFlip(true);
                 
                 //if we aren't jumping set idle
@@ -212,7 +278,13 @@ public final class Input
         if (keyboard.hasKeyPressed(KEY_JUMP))
         {
             if (mario.canJump())
+            {
+                //start jumping
                 mario.startJump();
+                
+                //determine sound to play if hero is big or small
+                mario.setAudioKey((mario.isBig()) ? GameAudio.Keys.SfxLevelJumpBig : GameAudio.Keys.SfxLevelJumpSmall);
+            }
         }
         
         if (keyboard.hasKeyReleased(KEY_JUMP))
@@ -258,6 +330,7 @@ public final class Input
         {
             if (!mario.isDucking() && mario.hasFire() && mario.canThrowProjectile())
             {
+                //start to attack
                 mario.setAttack(true);
             }
         }
@@ -272,6 +345,9 @@ public final class Input
                 
                 //add fireball
                 mario.addProjectile(new HeroFireball());
+                
+                //set sound effect to play
+                mario.setAudioKey(GameAudio.Keys.SfxLevelHeroFireball);
                 
                 //make sure mario can walk afterwards
                 if (!mario.isWalking() || !mario.isJumping() || !mario.isRunning())

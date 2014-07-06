@@ -1,14 +1,14 @@
 package com.gamesbykevin.mario.enemies;
 
 import com.gamesbykevin.framework.util.Timer;
-
 import com.gamesbykevin.framework.util.Timers;
+
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.projectiles.Bullet;
-import java.util.List;
+import com.gamesbykevin.mario.resources.GameAudio;
 
 import java.util.Random;
 
@@ -102,6 +102,9 @@ public final class BulletBill extends Enemy
                     
                     //add projectile
                     addProjectile(new Bullet());
+                    
+                    //set sound to play
+                    super.setAudioKey(GameAudio.Keys.SfxLevelBulletBill);
                 }
             }
         }

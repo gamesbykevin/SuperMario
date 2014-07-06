@@ -10,6 +10,7 @@ import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.game.Game;
 import com.gamesbykevin.mario.input.Input;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.shared.Displayable;
 import com.gamesbykevin.mario.shared.IElement;
 import com.gamesbykevin.mario.shared.Shared;
@@ -291,6 +292,9 @@ public final class Matching extends Game implements Disposable, IElement, Displa
     @Override
     public void reset(final Random random)
     {
+        //choose random bonus music to play
+        super.setAudioKey(GameAudio.getBonusMusic(random));
+        
         super.unflagReset();
         
         //make timer finish on purpose
@@ -382,6 +386,9 @@ public final class Matching extends Game implements Disposable, IElement, Displa
     @Override
     public void update(final Engine engine)
     {
+        //update parent
+        super.update(engine);
+        
         //get the input object
         final Keyboard keyboard = engine.getKeyboard();
 
@@ -475,6 +482,9 @@ public final class Matching extends Game implements Disposable, IElement, Displa
 
                     //check if we have match or failed attempt
                     calculateWin(engine.getManager().getMario());
+                    
+                    //play sound if won or not
+                    engine.getResources().playGameAudio((success) ? GameAudio.Keys.SfxGameMatch : GameAudio.Keys.SfxGameNoMatch);
                 }
             }
         }

@@ -3,9 +3,11 @@ package com.gamesbykevin.mario.character;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.effects.Effects;
+import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.projectiles.Projectile;
+import com.gamesbykevin.mario.resources.GameAudio;
 
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -326,11 +328,14 @@ public abstract class Character extends Entity implements Disposable
         }
     }
     
-    protected void updateProjectiles(final long time, final Level level)
+    public void updateProjectiles(final Engine engine)
     {
         //don't continue if nothing exists
         if (getProjectiles().isEmpty())
             return;
+        
+        //get the current level
+        final Level level = engine.getManager().getWorld().getLevels().getLevel();
         
         for (int i = 0; i < projectiles.size(); i++)
         {
@@ -339,11 +344,8 @@ public abstract class Character extends Entity implements Disposable
             //adjust for scrolling
             projectile.setX(projectile.getX() + level.getScrollX());
             
-            //update animation
-            projectile.update(time);
-
-            //update location
-            projectile.update();
+            //update misc
+            projectile.update(engine);
             
             //update specific logic for this projectile
             projectile.updateLogic(level);

@@ -6,6 +6,7 @@ import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.mario.shared.IElement;
@@ -240,14 +241,11 @@ public abstract class Enemy extends Character implements Disposable, IElement
         //get the current level
         final Level level = engine.getManager().getWorld().getLevels().getLevel();
         
-        //update animation
-        super.update(engine.getMain().getTime());
-        
-        //update based on velocity
-        super.update();
+        //update animation/location/sound
+        super.update(engine);
         
         //update the projetiles
-        super.updateProjectiles(engine.getMain().getTime(), level);
+        super.updateProjectiles(engine);
         
         //apply gravity to the enemies that are supposed to
         if (!canDefyGravity())
@@ -274,6 +272,9 @@ public abstract class Enemy extends Character implements Disposable, IElement
             {
                 //hero is invincible so the enemy is dead
                 markDead();
+                
+                //play dead sound effect by hit
+                super.setAudioKey(GameAudio.Keys.SfxLevelKick);
             }
             else
             {
@@ -285,11 +286,28 @@ public abstract class Enemy extends Character implements Disposable, IElement
                     {
                         if (hasWeaknessStomp())
                         {
+                            if (Enemies.hasShell(getType()))
+                            {
+                                super.setAudioKey(GameAudio.Keys.SfxLevelStomp2);
+                            }
+                            else if (getType() == Enemies.Type.TurtleSkeleton)
+                            {
+                                super.setAudioKey(GameAudio.Keys.SfxLevelSkeletonStomp);
+                            }
+                            else
+                            {
+                                super.setAudioKey(GameAudio.Keys.SfxLevelStomp1);
+                            }
+                            
                             //mark as jumping
                             hero.setJump(true);
                             
-                            //make the hero bounce off the enemy
-                            hero.setVelocityY(-hero.getVelocityY());
+                            //make hero bounce off enemy
+                            if (hero.getVelocityY() > 0)
+                            {
+                                //make the hero bounce off the enemy
+                                hero.setVelocityY(-hero.getVelocityY());
+                            }
                             
                             //mark enemy as dead?
                             markHurt();
@@ -395,6 +413,9 @@ public abstract class Enemy extends Character implements Disposable, IElement
             {
                 //mark enemy dead
                 enemy.markDead();
+                
+                //set audio to play
+                enemy.setAudioKey(GameAudio.Keys.SfxLevelKick);
                 
                 //fall off screen
                 enemy.setTraditionalDeath();

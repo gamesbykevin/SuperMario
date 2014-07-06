@@ -1,15 +1,16 @@
 package com.gamesbykevin.mario.world.level.powerups;
 
-import com.gamesbykevin.mario.world.level.tiles.Tile;
-import com.gamesbykevin.mario.world.level.tiles.Tiles;
-import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
-import com.gamesbykevin.mario.effects.Effects;
 
+import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.AnimationHelper;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.level.Level;
 
 import java.awt.Graphics;
 import java.awt.Image;
@@ -145,64 +146,75 @@ public final class PowerUps implements Disposable
         }
     }
     
-    public void manageHeroCollision(final Level level, final Hero hero)
+    public PowerUps.Type manageHeroCollision(final Level level, final Hero hero)
     {
+        //a type will be returned and removed from the list if the hero has collision
+        PowerUps.Type type = level.getPowerUpCollision(hero);
+        
         try
         {
-            //a type will be returned and removed from the list if the hero has collision
-            PowerUps.Type type = level.getPowerUpCollision(hero);
-            
-            //if no collision return
-            if (type == null)
-                return;
 
-            switch (type)
+            //if not null, then collision was found
+            if (type != null)
             {
-                case Mushroom:
-                    hero.setBig(true);
-                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
-                    hero.setDimensions();
-                    
-                    Tile south = hero.checkCollisionSouth(level.getTiles());
-            
-                    //correct mario y location
-                    if (south != null)
-                        hero.setY(south.getY() - hero.getHeight());
-                    break;
-                    
-                case Flower:
-                    hero.setBig(true);
-                    hero.setFire(true);
-                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
-                    hero.setDimensions();
-                    
-                    south = hero.checkCollisionSouth(level.getTiles());
-            
-                    //correct mario y location
-                    if (south != null)
-                        hero.setY(south.getY() - hero.getHeight());
-                    break;
-                    
-                case Star:
-                    hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
-                    
-                    //flag invincible
-                    hero.setInvincible(true);
-                    
-                    //reset invincible timers
-                    hero.getTimers().reset();
-                    break;
-                    
-                case Coin:
-                    //add coin
-                    hero.addCoin();
-                    break;
+                switch (type)
+                {
+                    case Mushroom:
+                        //set sound to play
+                        hero.setAudioKey(GameAudio.Keys.SfxLevelPowerUp);
+                        hero.setBig(true);
+                        hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+                        hero.setDimensions();
+
+                        Tile south = hero.checkCollisionSouth(level.getTiles());
+
+                        //correct mario y location
+                        if (south != null)
+                            hero.setY(south.getY() - hero.getHeight());
+                        break;
+
+                    case Flower:
+                        //set sound to play
+                        hero.setAudioKey(GameAudio.Keys.SfxLevelPowerUp);
+                        hero.setBig(true);
+                        hero.setFire(true);
+                        hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+                        hero.setDimensions();
+
+                        south = hero.checkCollisionSouth(level.getTiles());
+
+                        //correct mario y location
+                        if (south != null)
+                            hero.setY(south.getY() - hero.getHeight());
+                        break;
+
+                    case Star:
+                        hero.setAnimation(AnimationHelper.getDefaultAnimation(hero), false);
+
+                        //flag invincible
+                        hero.setInvincible(true);
+
+                        //reset invincible timers
+                        hero.getTimers().reset();
+                        break;
+
+                    case Coin:
+                        //set sound to play
+                        hero.setAudioKey(GameAudio.Keys.SfxLevelCoin1);
+
+                        //add coin
+                        hero.addCoin();
+                        break;
+                }
             }
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
+        
+        //return result
+        return type;
     }
     
     public void managePowerupBlock(final Random random, final Tile north, final Level level, final Hero mario)
@@ -212,6 +224,9 @@ public final class PowerUps implements Disposable
         //choose at random if we are to add a power up, that is not a coin
         if (north.isPowerup())
         {
+            //set audio to play
+            mario.setAudioKey((random.nextBoolean()) ? GameAudio.Keys.SfxLevelPowerUpHit1 : GameAudio.Keys.SfxLevelPowerUpHit2);
+            
             //the block can do two different things
             if (random.nextBoolean())
             {
@@ -219,22 +234,25 @@ public final class PowerUps implements Disposable
                 if (!mario.isBig())
                 {
                     //if not big it will be a mushroom
-                    level.getPowerUps().add(PowerUps.Type.Mushroom, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                    add(PowerUps.Type.Mushroom, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
                 }
                 else
                 {
                     //if not big it will be a fire flower
-                    level.getPowerUps().add(PowerUps.Type.Flower, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                    add(PowerUps.Type.Flower, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
                 }
             }
             else
             {
                 //choose star
-                level.getPowerUps().add(PowerUps.Type.Star, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
+                add(PowerUps.Type.Star, north.getX(), north.getY(), north.getY() - Tile.HEIGHT);
             }
         }
         else
         {
+            //set sound to play
+            mario.setAudioKey(GameAudio.Keys.SfxLevelCoin2);
+            
             //need to add animation effect of collecting a coin here
             level.getEffects().add(north.getX(), north.getY() - north.getHeight(), Effects.Type.CollectCoin);
             

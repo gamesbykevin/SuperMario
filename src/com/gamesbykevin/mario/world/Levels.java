@@ -4,6 +4,7 @@ import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.resources.GameImages;
 import com.gamesbykevin.mario.shared.IElement;
 import com.gamesbykevin.mario.shared.IProgress;
@@ -30,15 +31,18 @@ public final class Levels implements Disposable, IElement, IProgress
     private int count;
     
     //how big and small the screens are
-    private static final int LEVEL_SCREENS_MIN = 10;
-    private static final int LEVEL_SCREENS_MAX = 25;
+    private static final int LEVEL_SCREENS_MIN = 13;
+    private static final int LEVEL_SCREENS_MAX = 20;
     
     //how many levels can be in the world
-    private static final int LEVEL_COUNT_MIN = 6;
+    private static final int LEVEL_COUNT_MIN = 5;
     private static final int LEVEL_COUNT_MAX = 10;
     
     //do we hide enemies
     private final boolean hide;
+    
+    //list of optional music for levels
+    private List<GameAudio.Keys> options = new ArrayList<>();
     
     public Levels(final boolean hide)
     {
@@ -126,6 +130,16 @@ public final class Levels implements Disposable, IElement, IProgress
         
         //mark as not complete
         this.setComplete(false);
+        
+        //clear list
+        this.options.clear();
+        
+        //add optional music to list
+        for (int i = 0; i < GameAudio.Keys.values().length; i++)
+        {
+            if (GameAudio.isLevelMusic(GameAudio.Keys.values()[i]))
+                options.add(GameAudio.Keys.values()[i]);
+        }
     }
     
     protected void addLevel(final Engine engine)
@@ -142,9 +156,21 @@ public final class Levels implements Disposable, IElement, IProgress
             engine.getResources().getGameImage(GameImages.Keys.LevelTiles), 
             engine.getResources().getGameImage(GameImages.Keys.PowerUps), 
             engine.getRandom());
+        
+        //create the background for the level
         level.createBackground(engine.getResources().getGameImage(GameImages.Keys.LevelBackgrounds), engine.getRandom());
+        
+        //create special effects for dislay
         level.createEffects(engine.getResources().getGameImage(GameImages.Keys.Effects));
+        
+        //place enemies in level
         level.placeEnemies(engine.getResources().getGameImage(GameImages.Keys.Enemies), engine.getRandom());
+        
+        //pick random index for sound assignment
+        final int i = engine.getRandom().nextInt(options.size());
+        
+        //assign background music to level
+        level.assignBackgroundMusic(options.get(i));
         
         //determine if enemies are hidden or not
         if (hasEnemiesHidden())
@@ -158,6 +184,22 @@ public final class Levels implements Disposable, IElement, IProgress
         
         //add level to collection
         levels.add(level);
+        
+        //we haven't reached the level goal count yet
+        if (getCount() < count)
+        {
+            //if there is at least more than 1 option left, then the randomly chosen can be removed
+            if (options.size() > 1)
+            {
+                //remove music from list
+                options.remove(i);
+            }
+        }
+        else
+        {
+            //we reached our goal, the list can be cleared
+            options.clear();
+        }
     }
     
     @Override

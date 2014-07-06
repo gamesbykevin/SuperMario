@@ -1,5 +1,6 @@
 package com.gamesbykevin.mario.world;
 
+import com.gamesbykevin.framework.util.*;
 import com.gamesbykevin.framework.resources.Progress;
 import com.gamesbykevin.framework.resources.Disposable;
 
@@ -10,6 +11,7 @@ import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.resources.GameFont;
 import com.gamesbykevin.mario.shared.IElement;
 import com.gamesbykevin.mario.shared.IProgress;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.resources.GameImages;
 import com.gamesbykevin.mario.shared.Shared;
 import com.gamesbykevin.mario.world.level.hud.Hud;
@@ -45,10 +47,19 @@ public final class World implements Disposable, IElement, IProgress
     //track progress of creation
     private Progress progress;
     
+    //the timer to track time until new world is created
+    private Timer timer;
+    
+    //the delay before creating a new world
+    private static final long WORLD_COMPLETE_DELAY = Timers.toNanoSeconds(8000L);
+    
     public World()
     {
         try
         {
+            //create new timer
+            this.timer = new Timer(WORLD_COMPLETE_DELAY);
+            
             //we have 4 different things to reset to create the world
             this.progress = new Progress(4);
             this.progress.setDescription("Creating World");
@@ -173,6 +184,9 @@ public final class World implements Disposable, IElement, IProgress
     
     public void reset(final Random random)
     {
+        //reset timer
+        timer.reset();
+        
         //flag as not complete
         setComplete(false);
         
@@ -299,6 +313,34 @@ public final class World implements Disposable, IElement, IProgress
             if (getMap().isDisplayed())
             {
                 getMap().update(engine);
+                
+                //if the map is solved
+                if (getMap().hasSolved())
+                {
+                    //prevent mario from moving
+                    engine.getManager().getMario().resetVelocity();
+                    
+                    //reset input
+                    engine.getKeyboard().reset();
+                    
+                    //update timer
+                    timer.update(engine.getMain().getTime());
+                    
+                    //if time has passed we need to create a new world
+                    if (timer.hasTimePassed())
+                    {
+                        //stop all sound
+                        engine.getResources().stopAllSound();
+                        
+                        //mark to reset
+                        reset(engine.getRandom());
+                        
+                        //increase the world number
+                        getMap().nextWorld();
+                    }
+                    
+                    return;
+                }
             }
             else
             {

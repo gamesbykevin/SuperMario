@@ -1,16 +1,18 @@
 package com.gamesbykevin.mario.heroes;
 
-import com.gamesbykevin.mario.world.level.tiles.Tile;
-import com.gamesbykevin.mario.world.level.tiles.Tiles;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
 
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.engine.Engine;
-import com.gamesbykevin.mario.world.World;
-import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.shared.IElement;
+import com.gamesbykevin.mario.world.level.Level;
+import com.gamesbykevin.mario.world.level.tiles.Tile;
+import com.gamesbykevin.mario.world.level.tiles.Tiles;
+import com.gamesbykevin.mario.world.World;
+import com.gamesbykevin.mario.world.level.powerups.PowerUps;
 
 import java.awt.image.BufferedImage;
 import java.awt.AlphaComposite;
@@ -20,7 +22,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.util.Random;
 
-public abstract class Hero extends Character implements IElement, Disposable 
+public abstract class Hero extends Character implements IElement, Disposable
 {
     //by default the hero isn't big
     private boolean big = false;
@@ -59,7 +61,10 @@ public abstract class Hero extends Character implements IElement, Disposable
     private static final long HURT_DELAY = Timers.toNanoSeconds(3000L);
     
     //how to pause the hero for victory
-    private static final long VICTORY_DELAY = Timers.toNanoSeconds(3000L);
+    private static final long VICTORY_DELAY = Timers.toNanoSeconds(4000L);
+    
+    //how to pause for hero death
+    private static final long DEATH_DELAY = Timers.toNanoSeconds(4750L);
     
     //how many coins are required for a new life
     private static final int COINS_PER_LIFE = 100;
@@ -72,7 +77,7 @@ public abstract class Hero extends Character implements IElement, Disposable
     
     private enum TimerKey
     {
-        ImageSwitch, InvincibilityDuration, Hurt, Victory
+        ImageSwitch, InvincibilityDuration, Hurt, Victory, Dead
     }
     
     //do we switch between images
@@ -208,6 +213,10 @@ public abstract class Hero extends Character implements IElement, Disposable
     {
         this.fire = fire;
         
+        //if we have fire we are also big
+        if (hasFire())
+            setBig(true);
+        
         //if not fire, remove any existing projectiles
         if (!hasFire())
             getProjectiles().clear();
@@ -225,6 +234,7 @@ public abstract class Hero extends Character implements IElement, Disposable
         this.timers.add(TimerKey.InvincibilityDuration, INVINCIBLE_DELAY);
         this.timers.add(TimerKey.Hurt, HURT_DELAY);
         this.timers.add(TimerKey.Victory, VICTORY_DELAY);
+        this.timers.add(TimerKey.Dead, DEATH_DELAY);
         
         try
         {
@@ -312,6 +322,15 @@ public abstract class Hero extends Character implements IElement, Disposable
             //update timer
             timers.update(TimerKey.Victory);
         }
+        
+        if (isDead())
+        {
+            if (!timers.hasTimePassed(TimerKey.Dead))
+            {
+                //update timer
+                timers.update(TimerKey.Dead);
+            }
+        }
     }
     
     private void setMiniMapDefaults()
@@ -352,6 +371,9 @@ public abstract class Hero extends Character implements IElement, Disposable
             //reset coins back to 0
             this.coin = 0;
             this.setLives(this.getLives() + 1);
+            
+            //set sound to play
+            setAudioKey(GameAudio.Keys.SfxLevelExtraLife);
         }
     }
     
@@ -363,11 +385,15 @@ public abstract class Hero extends Character implements IElement, Disposable
     @Override
     public void update(final Engine engine)
     {
-        //update parent entity
-        super.update(engine.getMain().getTime());
+        //if we are to play the death sound
+        if (super.getAudioKey() == GameAudio.Keys.SfxLevelDie)
+        {
+            //stop all other sound
+            engine.getResources().stopAllSound();
+        }
         
-        //update location
-        super.update();
+        //update parent entity
+        super.update(engine);
         
         //if we are displaying the mini-map, don't continue
         if (engine.getManager().getWorld().getMap().isDisplayed())
@@ -380,8 +406,20 @@ public abstract class Hero extends Character implements IElement, Disposable
         //get the current level
         final Level level = engine.getManager().getWorld().getLevels().getLevel();
         
+        final boolean invincible = super.isInvincible();
+        
         //update our timers
         updateTimers();
+        
+        //if we were invincible and are no longer
+        if (invincible && !super.isInvincible())
+        {
+            //stop all sound
+            engine.getResources().stopAllSound();
+            
+            //play level sound again
+            engine.getManager().getWorld().getLevels().getLevel().assignBackgroundMusic();
+        }
         
         //are we currently jumping/falling
         this.jumping = super.isJumping();
@@ -392,7 +430,7 @@ public abstract class Hero extends Character implements IElement, Disposable
         if (!isDead())
         {
             //check the heroes collision with the level
-            checkLevelCollision(level, engine.getRandom());
+            checkLevelCollision(engine);
             
             //if the timer has finished mark the hero dead
             if (level.hasTimePassed())
@@ -401,9 +439,20 @@ public abstract class Hero extends Character implements IElement, Disposable
             //if the hero is off the screen, we are dead
             if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
                 markDead();
-        
-            //manage power up collision
-            level.getPowerUps().manageHeroCollision(level, this);
+            
+            //manage power up collision, and return type (if any)
+            final PowerUps.Type type = level.getPowerUps().manageHeroCollision(level, this);
+            
+            //if are invincible and now are
+            if (type == PowerUps.Type.Star)
+            {
+                //stop all sound
+                engine.getResources().stopAllSound();
+
+                //play invincible music
+                engine.getManager().getWorld().getLevels().getLevel().setAudioKey(GameAudio.getInvincibleMusic(engine.getRandom()));
+            }
+            
         }
 
         if (isDead())
@@ -411,14 +460,28 @@ public abstract class Hero extends Character implements IElement, Disposable
             //if the hero is dead and off the screen, reset and go back to the display map
             if (getY() > engine.getManager().getWindow().y + engine.getManager().getWindow().height)
             {
-                //reset all 
-                reset();
-                
-                //reset all keyboard input
-                engine.getKeyboard().reset();
-                
-                //switch back to mini-map
-                switchBack(engine.getManager().getWorld());
+                //check if time passed
+                if (timers.hasTimePassed(TimerKey.Dead))
+                {
+                    //reset all 
+                    reset();
+
+                    //reset all keyboard input
+                    engine.getKeyboard().reset();
+
+                    //switch back to mini-map
+                    switchBack(engine.getManager().getWorld());
+                    
+                    //lose 1 life
+                    setLives(getLives() - 1);
+                    
+                    //if no lives left
+                    if (!hasLives())
+                    {
+                        //play game over sound effect
+                        engine.getResources().playGameAudio(GameAudio.getGameOverMusic(engine.getRandom()));
+                    }
+                }
                 
                 //don't continue
                 return;
@@ -453,7 +516,7 @@ public abstract class Hero extends Character implements IElement, Disposable
         checkScroll(level, engine.getManager().getWindow());
         
         //update the projectiles
-        updateProjectiles(engine.getMain().getTime(), level);
+        updateProjectiles(engine);
         
         //check if hero has been hurt
         if (hasDamageCheck())
@@ -482,6 +545,9 @@ public abstract class Hero extends Character implements IElement, Disposable
      */
     public void reset()
     {
+        //reset all timers
+        timers.reset();
+        
         this.setIdle(true);
         this.setDead(false);
         this.setHurt(false);
@@ -500,8 +566,14 @@ public abstract class Hero extends Character implements IElement, Disposable
         super.getProjectiles().clear();
     }
     
-    private void checkLevelCollision(final Level level, final Random random)
+    private void checkLevelCollision(final Engine engine)
     {
+        final Random random = engine.getRandom();
+        
+        //get the current level
+        final Level level = engine.getManager().getWorld().getLevels().getLevel();
+        
+        //get the tiles in the level
         Tiles tiles = level.getTiles();
         
         if (hasVelocityY())
@@ -517,6 +589,12 @@ public abstract class Hero extends Character implements IElement, Disposable
                 //we hit the goal so the level is complete
                 if (south.getType() == Tiles.Type.Goal)
                 {
+                    //stop all sound
+                    engine.getResources().stopAllSound();
+                    
+                    //play level complete music
+                    engine.getResources().playGameAudio(GameAudio.getLevelCompleteMusic(random));
+                    
                     //set as complete
                     tiles.add(Tiles.Type.GoalComplete, south.getCol(), south.getRow(), south.getX(), south.getY());
 
@@ -661,7 +739,7 @@ public abstract class Hero extends Character implements IElement, Disposable
                     break;
 
                 case BreakableBrick:
-
+                    
                     //at random choose if a hidden power up is here
                     if (north.isPowerup())
                     {
@@ -672,13 +750,26 @@ public abstract class Hero extends Character implements IElement, Disposable
                         //can only break a brick if big or has fire
                         if (isBig() || this.hasFire())
                         {
+                            //set sound to play
+                            super.setAudioKey((random.nextBoolean()) ? GameAudio.Keys.SfxLevelBreakableBrick1 : GameAudio.Keys.SfxLevelBreakableBrick2);
+                            
                             //remove tile
                             tiles.remove((int)north.getCol(), (int)north.getRow());
 
                             //need to add animation effect of brick breaking here
                             level.getEffects().add(north, Effects.Type.BreakBrick);
                         }
+                        else
+                        {
+                            //set sound to play
+                            super.setAudioKey((random.nextBoolean()) ? GameAudio.Keys.SfxLevelBump1 : GameAudio.Keys.SfxLevelBump2);
+                        }
                     }
+                    break;
+                    
+                case UsedBlock:
+                    //set sound to play
+                    super.setAudioKey((random.nextBoolean()) ? GameAudio.Keys.SfxLevelBump1 : GameAudio.Keys.SfxLevelBump2);
                     break;
             }
         }
@@ -695,6 +786,9 @@ public abstract class Hero extends Character implements IElement, Disposable
             //also make sure we are not hurt
             if (!isHurt())
             {
+                //set sound to play
+                super.setAudioKey(GameAudio.Keys.SfxLevelPowerDown);
+                
                 //flag hurt 
                 setHurt(true);
 
@@ -726,6 +820,9 @@ public abstract class Hero extends Character implements IElement, Disposable
     @Override
     public void markDead()
     {
+        //set sound to play
+        super.setAudioKey(GameAudio.Keys.SfxLevelDie);
+        
         //flag as dead
         super.markDead();
 
@@ -738,9 +835,6 @@ public abstract class Hero extends Character implements IElement, Disposable
         
         //jump off the screen
         startJump();
-        
-        //lose 1 life
-        setLives(getLives() - 1);
     }
     
     /**

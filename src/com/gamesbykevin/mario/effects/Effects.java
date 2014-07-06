@@ -3,6 +3,7 @@ package com.gamesbykevin.mario.effects;
 import com.gamesbykevin.framework.resources.Disposable;
 
 import com.gamesbykevin.mario.entity.Entity;
+import com.gamesbykevin.mario.resources.GameAudio;
 
 import java.awt.Graphics;
 import java.awt.Image;

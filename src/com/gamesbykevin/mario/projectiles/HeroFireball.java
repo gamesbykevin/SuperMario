@@ -5,6 +5,7 @@ import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
@@ -42,6 +43,9 @@ public final class HeroFireball extends Projectile
                 //enemy has been killed
                 character.markDead();
                 
+                //set sound to play
+                character.setAudioKey(GameAudio.Keys.SfxLevelKick);
+                
                 //flip enemy upside down
                 character.setVerticalFlip(true);
             }
@@ -78,6 +82,9 @@ public final class HeroFireball extends Projectile
                 //add effect
                 level.getEffects().add(this, Effects.Type.FireballDestroy);
 
+                //set sound to play
+                setAudioKey(GameAudio.Keys.SfxLevelBump1);
+                
                 //flag dead
                 markDead();
                 

@@ -8,8 +8,8 @@ import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.projectiles.PlantFireball;
+import com.gamesbykevin.mario.resources.GameAudio;
 
-import java.util.List;
 import java.util.Random;
 
 public final class Plant extends Enemy
@@ -22,14 +22,22 @@ public final class Plant extends Enemy
         FaceSouth, FaceNorth
     }
     
-    //track how long we have been stunned
-    private Timer timer;
+    //track how long we pause before appearing
+    private Timers timers;
+    
+    private enum Key
+    {
+        Paused, Attack
+    }
     
     //our start and stop locations
     private double startY, destinationY;
     
     //how long should the enemy pause before retreating
     private static final long DEFAULT_DURATON_PAUSED = Timers.toNanoSeconds(3500L);
+    
+    //the amount of time to wait between each attack
+    private static final long DEFAULT_DURATON_ATTACK = Timers.toNanoSeconds(500L);
     
     //the speed which to appear
     protected static final double DEFAULT_VELOCITY_Y = 0.25;
@@ -51,9 +59,6 @@ public final class Plant extends Enemy
         setProjectileLimit(1);
         setDefyGravity(true);
         setFaceEast(false);
-        
-        //create new timer
-        timer = new Timer(DEFAULT_DURATON_PAUSED);
         
         //by default stop moving
         super.resetVelocity();
@@ -91,6 +96,15 @@ public final class Plant extends Enemy
     @Override
     public void update(final Hero hero, final Level level, final long time)
     {
+        //setup timers if not created yet
+        if (timers == null)
+        {
+            //create new timer
+            timers = new Timers(time);
+            timers.add(Key.Paused, DEFAULT_DURATON_PAUSED);
+            timers.add(Key.Attack, DEFAULT_DURATON_ATTACK);
+        }
+        
         if (isIdle())
         {
             //store the original location
@@ -138,24 +152,37 @@ public final class Plant extends Enemy
                 resetVelocity();
                 
                 //update timer
-                timer.update(time);
+                timers.update(Key.Paused);
                 
                 //if time has passed we will go back towards hiding
-                if (timer.hasTimePassed())
+                if (timers.hasTimePassed(Key.Paused))
                 {
                     //move back towards hiding
                     setVelocityY(DEFAULT_VELOCITY_Y);
                     
                     //reset timer
-                    timer.reset();
+                    timers.reset();
                 }
                 else
                 {
                     //check if we can fire projectile
                     if (canThrowProjectile())
                     {
-                        //add projectile
-                        addProjectile(new PlantFireball(isAnimation(State.FaceNorth) ? true : false));
+                        //update attack timer
+                        timers.update(Key.Attack);
+                        
+                        //if time has passed can attack again
+                        if (timers.hasTimePassed(Key.Attack))
+                        {
+                            //add projectile
+                            addProjectile(new PlantFireball(isAnimation(State.FaceNorth) ? true : false));
+                            
+                            //set sound to play
+                            super.setAudioKey(GameAudio.Keys.SfxLevelEnemyFireball);
+            
+                            //reset timer
+                            timers.reset(Key.Attack);
+                        }
                     }
                 }
             }

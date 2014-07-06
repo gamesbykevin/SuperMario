@@ -58,7 +58,8 @@
         <options name="Starting Lives: " id="Lives">
             <option>5</option>
             <option>10</option>
-            <option>20</option>
+            <option>33</option>
+            <option>99</option>
         </options>
         <options name="Full Screen: " id="FullScreen">
             <option>Off</option>

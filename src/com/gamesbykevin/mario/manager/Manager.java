@@ -57,21 +57,35 @@ public final class Manager implements IManager
         //create new world
         this.world = new World();
         
+        //create object to manage input
+        this.input = new Input();
+        
         //create new mario
         this.mario = new Mario(engine.getMain().getTime());
         this.mario.setImage(engine.getResources().getGameImage(GameImages.Keys.MarioSpriteSheet));
         this.mario.setGameOverImage(engine.getResources().getGameImage(GameImages.Keys.GameOverScreen));
         this.mario.createMiscImages();
         this.mario.setDimensions();
-        
-        //create object to manage input
-        this.input = new Input();
-        
-        //get the menu object
-        //final Menu menu = engine.getMenu();
 
-        //get index of option selected
-        //menu.getOptionSelectionIndex(CustomMenu.LayerKey.Options, CustomMenu.OptionKey.Lives)
+        //check the number of lives set
+        switch (engine.getMenu().getOptionSelectionIndex(CustomMenu.LayerKey.Options, CustomMenu.OptionKey.Lives))
+        {
+            case 0:
+                mario.setLives(5);
+                break;
+                
+            case 1:
+                mario.setLives(10);
+                break;
+                
+            case 2:
+                mario.setLives(33);
+                break;
+                
+            case 3:
+                mario.setLives(99);
+                break;
+        }
     }
     
     @Override
@@ -147,8 +161,8 @@ public final class Manager implements IManager
             if (getWorld().isComplete())
             {
                 getInput().update(engine);
-                getMario().update(engine);
                 getWorld().update(engine);
+                getMario().update(engine);
             }
             else
             {

@@ -5,11 +5,11 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
-import java.util.List;
 import java.util.Random;
 
 public final class Thwomp extends Enemy
@@ -130,6 +130,9 @@ public final class Thwomp extends Enemy
                 //stop jumping and this will also stop velocity
                 stopJumping();
 
+                //set sound to play
+                super.setAudioKey(GameAudio.Keys.SfxLevelThwomp);
+            
                 //the enemy will rest at the current location
                 setAnimation(State.Rest, false);
             }

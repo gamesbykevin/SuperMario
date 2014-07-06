@@ -5,6 +5,7 @@ import com.gamesbykevin.framework.util.Timer;
 import com.gamesbykevin.framework.util.Timers;
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
@@ -90,6 +91,9 @@ public final class TurtleGreen extends Enemy
         {
             //if enemy is stunned then the shell has been kicked
             setAnimation(State.Kicked, true);
+            
+            //set sound to play
+            super.setAudioKey(GameAudio.Keys.SfxLevelKick);
             
             //if the hero is on the left side
             if (hero.getX() < getX() + (getWidth() / 2))

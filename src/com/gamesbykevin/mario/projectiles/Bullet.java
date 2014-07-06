@@ -2,6 +2,7 @@ package com.gamesbykevin.mario.projectiles;
 
 import com.gamesbykevin.mario.character.Character;
 import com.gamesbykevin.mario.effects.Effects;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.world.level.Level;
 
 public final class Bullet extends Projectile
@@ -42,23 +43,20 @@ public final class Bullet extends Projectile
         if (getRectangle().intersects(character.getRectangle()))
         {
             //make sure the character collides with the north and is jumping/falling, or invincible
-            if (checkCollisionNorthAny(character) && character.isJumping() && character.getVelocityY() > 0 ||
+            if (checkCollisionNorthAny(character) && character.hasVelocityY() && character.getY() < getY() ||
                 character.isInvincible())
             {
                 //if character is stomping on projectile it is dead
                 markDead();
+                
+                //set sound to play
+                super.setAudioKey(GameAudio.Keys.SfxLevelStomp1);
                 
                 //stop moving
                 resetVelocity();
                 
                 //start falling
                 startJump();
-                
-                if (character.isJumping())
-                {
-                    //bounce off projectile only if jumping
-                    character.setVelocityY(-character.getVelocityY());
-                }
             }
             else
             {

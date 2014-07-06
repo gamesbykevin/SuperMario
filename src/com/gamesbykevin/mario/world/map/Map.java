@@ -8,7 +8,9 @@ import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.mario.engine.Engine;
 import com.gamesbykevin.mario.heroes.AnimationHelper;
 import com.gamesbykevin.mario.heroes.Hero;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.shared.Displayable;
+import com.gamesbykevin.mario.shared.IAudio;
 import com.gamesbykevin.mario.shared.IElement;
 import com.gamesbykevin.mario.shared.IProgress;
 import com.gamesbykevin.mario.shared.Shared;
@@ -24,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public final class Map implements Disposable, IElement, Displayable, IProgress
+public final class Map implements Disposable, IElement, Displayable, IProgress, IAudio
 {
     //list of all possible tiles
     private HashMap<Tile.Type, Tile> tiles;
@@ -74,6 +76,14 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
     //the font for displayed text
     private Font font;
     
+    //do we need to play a sound
+    private GameAudio.Keys audioKey = null, mapMusic = null;
+    
+    public enum Selection
+    {
+        Level, MatchingGame, SlotGame
+    }
+    
     /**
      * Create a new map
      * @param image The image containing all the tiles for the map
@@ -111,6 +121,9 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
     {
         try
         {
+            //set background music for map
+            mapMusic = GameAudio.getMapMusic(random);
+            
             current.setCol(0);
             current.setRow(0);
 
@@ -179,6 +192,8 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
 
             //mark complete
             setComplete(true);
+            
+            setAudioKey(mapMusic);
         }
         catch (Exception e)
         {
@@ -186,10 +201,56 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
         }
     }
     
+    /**
+     * Is the map solved
+     * @return true if all levels are complete, false otherwise
+     */
+    public boolean hasSolved()
+    {
+        return (getLevelCount() < 1);
+    }
+    
+    /**
+     * Count the number of existing unsolved levels
+     * @return The count of any level that has not been completed
+     */
+    private int getLevelCount()
+    {
+        int count = 0;
+        
+        for (int row = 0; row < maze.getRows(); row++)
+        {
+            for (int col = 0; col < maze.getCols(); col++)
+            {
+                //if this is a level tile increase count
+                if (Tile.isLevelTile(getType(col, row)))
+                    count++;
+            }
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Increase the world #
+     */
     public void nextWorld()
     {
         this.world++;
     }
+    
+    @Override
+    public void setAudioKey(final GameAudio.Keys audioKey)
+    {
+        this.audioKey = audioKey;
+    }
+    
+    @Override
+    public GameAudio.Keys getAudioKey()
+    {
+        return this.audioKey;
+    }
+    
     
     @Override
     public boolean isComplete()
@@ -207,6 +268,22 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
     public void setDisplayed(final boolean display)
     {
         this.display = display;
+        
+        //if we are displaying this again
+        if (display)
+        {
+            //if there are still existing levels
+            if (getLevelCount() > 0)
+            {
+                //we will be playing background music again
+                setAudioKey(this.mapMusic);
+            }
+            else
+            {
+                //we will be playing world clear
+                setAudioKey(GameAudio.Keys.MusicMapWorldClear);
+            }
+        }
     }
     
     @Override
@@ -693,58 +770,6 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
     }
     
     /**
-     * Check if the hero is at the destination
-     * @param hero Our hero
-     */
-    private void checkDestination(final Hero hero)
-    {
-        //get the x,y location where we want to be
-        final double x = getStartX(getTarget().getCol());
-        final double y = getStartY(getTarget().getRow());
-        
-        if (hero.getVelocityX() > 0)
-        {
-            //correct coordinate(s) if reached destination 
-            if (hero.getX() >= x - (hero.getWidth() / 2))
-            {
-                hero.setX(x - (hero.getWidth() / 2));
-                hero.resetVelocity();
-                setCurrent(getTarget().getCol(), getCurrent().getRow());
-            }
-        }
-        else if (hero.getVelocityX() < 0)
-        {
-            //correct coordinate(s) if reached destination 
-            if (hero.getX() <= x - (hero.getWidth() / 2))
-            {
-                hero.setX(x - (hero.getWidth() / 2));
-                hero.resetVelocity();
-                setCurrent(getTarget().getCol(), getCurrent().getRow());
-            }
-        }
-        else if (hero.getVelocityY() > 0)
-        {
-            //correct coordinate(s) if reached destination 
-            if (hero.getY() >= y - (hero.getHeight() / 2))
-            {
-                hero.setY(y - (hero.getHeight() / 2));
-                hero.resetVelocity();
-                setCurrent(getCurrent().getCol(), getTarget().getRow());
-            }
-        }
-        else if (hero.getVelocityY() < 0)
-        {
-            //correct coordinate(s) if reached destination 
-            if (hero.getY() <= y - (hero.getHeight() / 2))
-            {
-                hero.setY(y - (hero.getHeight() / 2));
-                hero.resetVelocity();
-                setCurrent(getCurrent().getCol(), getTarget().getRow());
-            }
-        }
-    }
-    
-    /**
      * Get the type of tile at the hero's location
      * @return The type of tile at the hero's current location
      */
@@ -753,31 +778,24 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
         return types[(int)getCurrent().getRow()][(int)getCurrent().getCol()];
     }
     
-    /**
-     * Is the current hero location on a card game tile
-     * @return true if so, false otherwise
-     */
-    public boolean hasCardGameSelection()
+    public Selection getSelection()
     {
-        return Tile.isCardMatchingTile(getType());
-    }
-    
-    /**
-     * Is the current hero location on a mushroom house tile
-     * @return true if so, false otherwise
-     */
-    public boolean hasMushroomHouseSelection()
-    {
-        return Tile.isMushroomHouseTile(getType());
-    }
-    
-    /**
-     * Is the current hero location on a level tile, level complete tile doesn't count
-     * @return true if a level tile is at the current hero location, false otherwise
-     */
-    public boolean hasLevelSelection()
-    {
-        return (getLevelIndex() > -1);
+        if (Tile.isCardMatchingTile(getType()))
+        {
+            return Selection.MatchingGame;
+        }
+        else if (Tile.isMushroomHouseTile(getType()))
+        {
+            return Selection.SlotGame;
+        }
+        else if (getLevelIndex() > -1)
+        {
+            return Selection.Level;
+        }
+        else
+        {
+            return null;
+        }
     }
     
     /**
@@ -886,15 +904,75 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
     @Override
     public void update(final Engine engine)
     {
+        if (getAudioKey() != null)
+        {
+            //stop all other sound
+            engine.getResources().stopAllSound();
+
+            //start to play background sound
+            engine.getResources().playGameAudio(getAudioKey(), (getLevelCount() > 0));
+
+            //remove from list
+            setAudioKey(null);
+        }
+        
         //update the tile animations/location
         for (int i = 0; i < Tile.Type.values().length; i++)
         {
             getTile(Tile.Type.values()[i]).update();
-            getTile(Tile.Type.values()[i]).update(engine.getMain().getTime());
+            getTile(Tile.Type.values()[i]).update(engine);
         }
 
-        //check the hero input
-        checkDestination(engine.getManager().getMario());
+        final Hero hero = engine.getManager().getMario();
+        
+        //check the hero
+        final double x = getStartX(getTarget().getCol());
+        final double y = getStartY(getTarget().getRow());
+        
+        if (hero.getVelocityX() > 0)
+        {
+            //correct coordinate(s) if reached destination 
+            if (hero.getX() >= x - (hero.getWidth() / 2))
+            {
+                hero.setX(x - (hero.getWidth() / 2));
+                hero.resetVelocity();
+                setCurrent(getTarget().getCol(), getCurrent().getRow());
+                engine.getResources().playGameAudio(GameAudio.Keys.SfxMapMove);
+            }
+        }
+        else if (hero.getVelocityX() < 0)
+        {
+            //correct coordinate(s) if reached destination 
+            if (hero.getX() <= x - (hero.getWidth() / 2))
+            {
+                hero.setX(x - (hero.getWidth() / 2));
+                hero.resetVelocity();
+                setCurrent(getTarget().getCol(), getCurrent().getRow());
+                engine.getResources().playGameAudio(GameAudio.Keys.SfxMapMove);
+            }
+        }
+        else if (hero.getVelocityY() > 0)
+        {
+            //correct coordinate(s) if reached destination 
+            if (hero.getY() >= y - (hero.getHeight() / 2))
+            {
+                hero.setY(y - (hero.getHeight() / 2));
+                hero.resetVelocity();
+                setCurrent(getCurrent().getCol(), getTarget().getRow());
+                engine.getResources().playGameAudio(GameAudio.Keys.SfxMapMove);
+            }
+        }
+        else if (hero.getVelocityY() < 0)
+        {
+            //correct coordinate(s) if reached destination 
+            if (hero.getY() <= y - (hero.getHeight() / 2))
+            {
+                hero.setY(y - (hero.getHeight() / 2));
+                hero.resetVelocity();
+                setCurrent(getCurrent().getCol(), getTarget().getRow());
+                engine.getResources().playGameAudio(GameAudio.Keys.SfxMapMove);
+            }
+        }
     }
     
     private double getStartX(final double col)
@@ -932,8 +1010,16 @@ public final class Map implements Disposable, IElement, Displayable, IProgress
         //set the appropriate font
         graphics.setFont(font);
         
-        //display the world #
-        graphics.drawString("World - " + world, WORLD_DISPLAY.x, WORLD_DISPLAY.y);
+        if (hasSolved())
+        {
+            //display the world #
+            graphics.drawString("World - " + world + " (Complete)", WORLD_DISPLAY.x, WORLD_DISPLAY.y);
+        }
+        else
+        {
+            //display the world #
+            graphics.drawString("World - " + world, WORLD_DISPLAY.x, WORLD_DISPLAY.y);
+        }
         
         for (int row = 0; row < maze.getRows(); row++)
         {

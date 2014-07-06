@@ -273,6 +273,26 @@ public final class Enemies implements Disposable, IElement
         }
     }
     
+    public static boolean hasShell(final Type type)
+    {
+        switch (type)
+        {
+            case TurtleGreen:
+            case TurtleRed:
+            case TurtleGreenWings:
+            case TurtleRedWings:
+            case TurtleGreenBig:
+            case TurtleGreenWingsBig:
+            case TurtleRedBig:
+            case TurtleRedWingsBig:
+            case BuzzyBeetle:
+                return true;
+                
+            default:
+                return false;
+        }
+    }
+    
     public void moveEnemies(final double x, final double y)
     {
         for (int i = 0; i < enemies.size(); i++)
@@ -484,13 +504,19 @@ public final class Enemies implements Disposable, IElement
             //even if we don't update the enemy we still need to adjust for scrolling
             enemy.setX(enemy.getX() + engine.getManager().getWorld().getLevels().getLevel().getScrollX());
             
-            //if the enemy is at least a screen away don't update
+            //if the enemy is at least a screen away don't update, but still update the projectile
             if (enemy.getX() + enemy.getWidth()  < boundary.x - (boundary.width * 1))
+            {
+                enemy.updateProjectiles(engine);
                 continue;
+            }
             
-            //if the enemy is at least a screen away don't update
+            //if the enemy is at least a screen away don't update, but still update the projectile
             if (enemy.getX() > boundary.x + (boundary.width * 2))
+            {
+                enemy.updateProjectiles(engine);
                 continue;
+            }
             
             //udpate enemy
             enemy.update(engine);

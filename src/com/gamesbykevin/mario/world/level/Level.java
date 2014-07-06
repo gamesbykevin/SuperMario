@@ -11,6 +11,8 @@ import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.world.level.powerups.PowerUps;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
+import com.gamesbykevin.mario.resources.GameAudio;
+import com.gamesbykevin.mario.shared.IAudio;
 import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
@@ -18,7 +20,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.util.Random;
 
-public final class Level implements Disposable, IElement
+public final class Level implements Disposable, IElement, IAudio
 {
     //list of tiles in the level
     private Tiles tiles;
@@ -61,6 +63,9 @@ public final class Level implements Disposable, IElement
     //the default level duration is 5 minutes
     private static final long LEVEL_DURATION = Timers.toNanoSeconds(5);
     
+    //the background music for this level
+    private GameAudio.Keys audioKey = null, backgroundMusic = null;
+    
     /**
      * Create a new level
      */
@@ -74,6 +79,38 @@ public final class Level implements Disposable, IElement
         
         //pause at first
         startTimer();
+    }
+    
+    /**
+     * Assign the background music for this level.
+     * @param backgroundMusic The audio key of the audio we want to play
+     */
+    public void assignBackgroundMusic(final GameAudio.Keys backgroundMusic)
+    {
+        this.backgroundMusic = backgroundMusic;
+        
+        //set audio to play
+        setAudioKey(backgroundMusic);
+    }
+    
+    /**
+     * Set the audio to play based on the previously set background music
+     */
+    public void assignBackgroundMusic()
+    {
+        assignBackgroundMusic(backgroundMusic);
+    }
+    
+    @Override
+    public void setAudioKey(final GameAudio.Keys audioKey)
+    {
+        this.audioKey = audioKey;
+    }
+    
+    @Override
+    public GameAudio.Keys getAudioKey()
+    {
+        return this.audioKey;
     }
     
     public void hideEnemies()
@@ -333,6 +370,16 @@ public final class Level implements Disposable, IElement
     @Override
     public void update(final Engine engine)
     {
+        //if there is audio to be played
+        if (getAudioKey() != null)
+        {
+            //play sound
+            engine.getResources().playGameAudio(getAudioKey(), true);
+
+            //remove from playing
+            setAudioKey(null);
+        }
+        
         //update tiles
         tiles.update(engine.getMain().getTime(), getScrollX());
         

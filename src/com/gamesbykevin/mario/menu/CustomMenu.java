@@ -1,14 +1,14 @@
 package com.gamesbykevin.mario.menu;
 
-import com.gamesbykevin.mario.engine.Engine;
-import com.gamesbykevin.mario.resources.Resources;
-import com.gamesbykevin.mario.shared.IElement;
-
 import com.gamesbykevin.framework.display.FullScreen;
 import com.gamesbykevin.framework.input.Mouse;
 import com.gamesbykevin.framework.menu.*;
 import com.gamesbykevin.framework.resources.FontManager;
 import com.gamesbykevin.framework.resources.ImageManager;
+
+import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.resources.Resources;
+import com.gamesbykevin.mario.shared.IElement;
 
 import java.awt.Graphics;
 import java.awt.event.KeyEvent;
@@ -39,8 +39,8 @@ public final class CustomMenu extends Menu implements IElement
     public enum LayerKey 
     {
         Initial, Credits, MainTitle, Options, OptionsInGame, NewGameConfirm, 
-        ExitGameConfirm, NoFocus, GameStart, CreateNewGame, Controls, Instructions,
-        ExitGameConfirmed
+        ExitGameConfirm, NoFocus, GameStart, CreateNewGame, Controls, Instructions, 
+        ExitGameConfirmed 
     }
     
     /**
@@ -50,9 +50,6 @@ public final class CustomMenu extends Menu implements IElement
     {
         Off, On 
     }
-    
-    //is sound enabled, default true
-    private Toggle sound = Toggle.Off;
     
     //is full screen enabled, default false
     private Toggle fullWindow = Toggle.Off;
@@ -140,23 +137,10 @@ public final class CustomMenu extends Menu implements IElement
         if (!super.hasFinished())
         {
             //the option selection for the sound and fullscreen
-            Toggle tmpSound = sound, tmpFullWindow = fullWindow;
+            Toggle tmpFullWindow = fullWindow;
             
             //are we currently in the in-game options
             final boolean isInGameOptionsLayer = super.hasCurrent(LayerKey.OptionsInGame);
-            
-            //if on the options screen check if sound/fullScreen enabled
-            if (super.hasCurrent(LayerKey.Options))
-            {
-                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.FullScreen)];
-            }
-            
-            //if on the in-game options screen check if sound/fullScreen enabled
-            if (isInGameOptionsLayer)
-            {
-                tmpSound      = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)];
-                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.FullScreen)];
-            }
             
             //if starting a new game change layer, stop all sound
             if (super.hasCurrent(LayerKey.CreateNewGame))
@@ -165,22 +149,27 @@ public final class CustomMenu extends Menu implements IElement
                 super.setLayer(LayerKey.GameStart);
             }
             
-            //if the values are not equal to each other a change was made
-            if (tmpSound != sound)
+            //if we are in the in-game options layer
+            if (isInGameOptionsLayer)
             {
-                if (engine.getResources() != null)
-                {
-                    //stop all currently playing sound
-                    if (tmpSound == Toggle.Off)
-                        engine.getResources().stopAllSound();
-
-                    //turn the audio on or off
-                    engine.getResources().setAudioEnabled(tmpSound == Toggle.On);
-                }
+                //determine the current selection for sound
+                final Toggle tmp = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)];
                 
-                //store the new setting
-                this.sound = tmpSound;
+                final boolean enabled = (tmp == Toggle.Off);
+                
+                //set the audio enabled/disabled depending on setting
+                engine.getResources().setAudioEnabled(enabled);
+                
+                if (!enabled)
+                    engine.getResources().stopAllSound();
+                
+                //get the setting for the fullscreen window
+                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.FullScreen)];
             }
+            
+            //if on the options screen check fullscreen setting
+            if (super.hasCurrent(LayerKey.Options))
+                tmpFullWindow = Toggle.values()[getOptionSelectionIndex(LayerKey.Options, OptionKey.FullScreen)];
             
             //if the values are not equal to each other a change was made
             if (tmpFullWindow != fullWindow)
@@ -188,8 +177,15 @@ public final class CustomMenu extends Menu implements IElement
                 if (fullScreen == null)
                     fullScreen = new FullScreen();
 
-                //switch from fullscreen to window or vice versa
-                fullScreen.switchFullScreen(engine.getMain().getApplet(), engine.getMain().getPanel());
+                //switch fullscreen
+                if (engine.getMain().getApplet() != null)
+                {
+                    fullScreen.switchFullScreen(engine.getMain().getApplet());
+                }
+                else
+                {
+                    fullScreen.switchFullScreen(engine.getMain().getPanel());
+                }
                 
                 //grab the rectangle coordinates of the full screen
                 engine.getMain().setFullScreen();

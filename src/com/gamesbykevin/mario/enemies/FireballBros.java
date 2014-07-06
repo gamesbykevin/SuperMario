@@ -7,8 +7,8 @@ import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.world.level.Level;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.projectiles.BrosFireball;
+import com.gamesbykevin.mario.resources.GameAudio;
 
-import java.util.List;
 import java.util.Random;
 
 public final class FireballBros extends Enemy
@@ -155,6 +155,9 @@ public final class FireballBros extends Enemy
                     //add projectile
                     addProjectile(new BrosFireball());
 
+                    //set sound to play
+                    super.setAudioKey(GameAudio.Keys.SfxLevelEnemyFireball);
+                    
                     //restore location
                     setY(y);
                     setX(x);

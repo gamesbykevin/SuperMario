@@ -9,6 +9,7 @@ import com.gamesbykevin.mario.entity.Entity;
 import com.gamesbykevin.mario.game.Game;
 import com.gamesbykevin.mario.heroes.Hero;
 import com.gamesbykevin.mario.input.Input;
+import com.gamesbykevin.mario.resources.GameAudio;
 import com.gamesbykevin.mario.shared.Displayable;
 import com.gamesbykevin.mario.shared.IElement;
 import com.gamesbykevin.mario.shared.Shared;
@@ -143,6 +144,9 @@ public final class Slot extends Game implements Disposable, IElement, Displayabl
     @Override
     public void reset(final Random random)
     {
+        //choose random bonus music to play
+        super.setAudioKey(GameAudio.getBonusMusic(random));
+        
         //unflag reset
         super.unflagReset();
         
@@ -381,6 +385,9 @@ public final class Slot extends Game implements Disposable, IElement, Displayabl
     @Override
     public void update(final Engine engine)
     {
+        //update parent
+        super.update(engine);
+        
         if (isComplete())
         {
             //if the game is complete determine if winner
@@ -392,6 +399,9 @@ public final class Slot extends Game implements Disposable, IElement, Displayabl
                 //we are done calculating
                 calculate = true;
 
+                //play sound if won or not
+                engine.getResources().playGameAudio((getReward() != null) ? GameAudio.Keys.SfxGameMatch : GameAudio.Keys.SfxGameNoMatch);
+                
                 //reset the timer
                 timer.reset();
             }

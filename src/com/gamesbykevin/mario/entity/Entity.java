@@ -4,6 +4,10 @@ import com.gamesbykevin.framework.base.Animation;
 import com.gamesbykevin.framework.base.Sprite;
 import com.gamesbykevin.framework.resources.Disposable;
 import com.gamesbykevin.framework.util.Timers;
+
+import com.gamesbykevin.mario.engine.Engine;
+import com.gamesbykevin.mario.resources.GameAudio;
+import com.gamesbykevin.mario.shared.IAudio;
 import com.gamesbykevin.mario.world.level.tiles.Tile;
 import com.gamesbykevin.mario.world.level.tiles.Tiles;
 
@@ -11,7 +15,7 @@ import com.gamesbykevin.mario.world.level.tiles.Tiles;
  * Every object in the game is an entity
  * @author GOD
  */
-public abstract class Entity extends Sprite implements Disposable
+public abstract class Entity extends Sprite implements Disposable, IAudio
 {
     //default time delay
     protected static final long DEFAULT_DELAY = Timers.toNanoSeconds(250L);
@@ -24,6 +28,9 @@ public abstract class Entity extends Sprite implements Disposable
     
     //is this entity jumping/falling
     private boolean jump = false;
+    
+    //for assigning a sound to play
+    private GameAudio.Keys audioKey = null;
     
     /**
      * No velocity
@@ -196,19 +203,58 @@ public abstract class Entity extends Sprite implements Disposable
     }
     
     /**
-     * Update current animation
-     * @param time The time to deduct from the current animation (nano-seconds)
+     * Update the animation
+     * @param time Time to deduct (nano-seconds)
      */
     public void update(final long time)
     {
         try
         {
+            //update animation
             super.getSpriteSheet().update(time);
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
+    }
+    
+    public void update(final Engine engine)
+    {
+        try
+        {
+            //update location
+            super.update();
+            
+            //update animation
+            update(engine.getMain().getTime());
+            
+            //if there is audio to be played
+            if (getAudioKey() != null)
+            {
+                //play sound
+                engine.getResources().playGameAudio(getAudioKey());
+
+                //remove from playing
+                setAudioKey(null);
+            }
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+   
+    @Override
+    public void setAudioKey(final GameAudio.Keys audioKey)
+    {
+        this.audioKey = audioKey;
+    }
+    
+    @Override
+    public GameAudio.Keys getAudioKey()
+    {
+        return this.audioKey;
     }
     
     /**

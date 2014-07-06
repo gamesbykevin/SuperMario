@@ -1,6 +1,66 @@
 <?xml version="1.0"?>
 <sounds>
-    <!--
-    <sound id="PickupAmmo">resources/audio/game/sound/PickupAmmo.wav</sound>
-    -->
+    <sound id="MusicBonus1">resources/audio/game/music/game/bonus1.mp3</sound>
+    <sound id="MusicBonus2">resources/audio/game/music/game/bonus2.mp3</sound>
+    <sound id="MusicBonus3">resources/audio/game/music/game/bonus3.mp3</sound>
+    
+    <sound id="MusicLevel01">resources/audio/game/music/level/background1.mp3</sound>
+    <sound id="MusicLevel02">resources/audio/game/music/level/background2.mp3</sound>
+    <sound id="MusicLevel03">resources/audio/game/music/level/background3.mp3</sound>
+    <sound id="MusicLevel04">resources/audio/game/music/level/background4.mp3</sound>
+    <sound id="MusicLevel05">resources/audio/game/music/level/background5.mp3</sound>
+    <sound id="MusicLevel06">resources/audio/game/music/level/background6.mp3</sound>
+    <sound id="MusicLevel07">resources/audio/game/music/level/background7.mp3</sound>
+    <sound id="MusicLevel08">resources/audio/game/music/level/background8.mp3</sound>
+    <sound id="MusicLevel09">resources/audio/game/music/level/background9.mp3</sound>
+    <sound id="MusicLevel10">resources/audio/game/music/level/background10.mp3</sound>
+    
+    <sound id="MusicInvincible1">resources/audio/game/music/level/invincible1.mp3</sound>
+    <sound id="MusicInvincible2">resources/audio/game/music/level/invincible2.mp3</sound>
+    <sound id="MusicInvincible3">resources/audio/game/music/level/invincible3.mp3</sound>
+    
+    <sound id="MusicMap1">resources/audio/game/music/map/map1.mp3</sound>
+    <sound id="MusicMap2">resources/audio/game/music/map/map2.mp3</sound>
+    <sound id="MusicMap3">resources/audio/game/music/map/map3.mp3</sound>
+    <sound id="MusicMap4">resources/audio/game/music/map/map4.mp3</sound>
+    <sound id="MusicMap5">resources/audio/game/music/map/map5.mp3</sound>
+    <sound id="MusicMap6">resources/audio/game/music/map/map6.mp3</sound>
+    <sound id="MusicMap7">resources/audio/game/music/map/map7.mp3</sound>
+    
+    <sound id="MusicMapWorldClear">resources/audio/game/music/map/worldClear.mp3</sound>
+    
+    <sound id="SfxGameMatch">resources/audio/game/sfx/game/match.wav</sound>
+    <sound id="SfxGameNoMatch">resources/audio/game/sfx/game/noMatch.wav</sound>
+    
+    <sound id="SfxMapMove">resources/audio/game/sfx/map/move.wav</sound>
+    <sound id="SfxMapEnter">resources/audio/game/sfx/map/enter.wav</sound>
+    
+    <sound id="SfxLevelBreakableBrick1">resources/audio/game/sfx/level/breakBrick1.wav</sound>
+    <sound id="SfxLevelBreakableBrick2">resources/audio/game/sfx/level/breakBrick2.wav</sound>
+    <sound id="SfxLevelBulletBill">resources/audio/game/sfx/level/bulletBill.wav</sound>
+    <sound id="SfxLevelBump1">resources/audio/game/sfx/level/bump1.wav</sound>
+    <sound id="SfxLevelBump2">resources/audio/game/sfx/level/bump2.wav</sound>
+    <sound id="SfxLevelCoin1">resources/audio/game/sfx/level/coin1.wav</sound>
+    <sound id="SfxLevelCoin2">resources/audio/game/sfx/level/coin2.wav</sound>
+    <sound id="SfxLevelDie">resources/audio/game/sfx/level/die.wav</sound>
+    <sound id="SfxLevelEnemyFireball">resources/audio/game/sfx/level/enemyFireball.wav</sound>
+    <sound id="SfxLevelExtraLife">resources/audio/game/sfx/level/extraLife.wav</sound>
+    <sound id="SfxLevelGameOver1">resources/audio/game/sfx/level/gameOver1.wav</sound>
+    <sound id="SfxLevelGameOver2">resources/audio/game/sfx/level/gameOver2.wav</sound>
+    <sound id="SfxLevelGameOver3">resources/audio/game/sfx/level/gameOver3.wav</sound>
+    <sound id="SfxLevelHeroFireball">resources/audio/game/sfx/level/heroFireball.wav</sound>
+    <sound id="SfxLevelJumpSmall">resources/audio/game/sfx/level/jumpSmall.wav</sound>
+    <sound id="SfxLevelJumpBig">resources/audio/game/sfx/level/jumpBig.wav</sound>
+    <sound id="SfxLevelKick">resources/audio/game/sfx/level/kick.wav</sound>
+    <sound id="SfxLevelClear1">resources/audio/game/sfx/level/levelClear1.wav</sound>
+    <sound id="SfxLevelClear2">resources/audio/game/sfx/level/levelClear2.wav</sound>
+    <sound id="SfxLevelClear3">resources/audio/game/sfx/level/levelClear3.wav</sound>
+    <sound id="SfxLevelPowerDown">resources/audio/game/sfx/level/powerDown.wav</sound>
+    <sound id="SfxLevelPowerUp">resources/audio/game/sfx/level/powerUp.wav</sound>
+    <sound id="SfxLevelPowerUpHit1">resources/audio/game/sfx/level/powerupHit1.wav</sound>
+    <sound id="SfxLevelPowerUpHit2">resources/audio/game/sfx/level/powerupHit2.wav</sound>
+    <sound id="SfxLevelSkeletonStomp">resources/audio/game/sfx/level/skeletonStomp.wav</sound>
+    <sound id="SfxLevelStomp1">resources/audio/game/sfx/level/stomp1.wav</sound>
+    <sound id="SfxLevelStomp2">resources/audio/game/sfx/level/stomp2.wav</sound>
+    <sound id="SfxLevelThwomp">resources/audio/game/sfx/level/thwomp.wav</sound>
 </sounds>
