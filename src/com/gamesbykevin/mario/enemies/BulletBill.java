@@ -38,7 +38,7 @@ public final class BulletBill extends Enemy
         //set defaults
         setWeaknessProjectile(false);
         setDamageCollision(false);
-        setWeaknessStomp(true);
+        setWeaknessStomp(false);
         setProjectileLimit(1);
         setDefyGravity(true);
         setFaceEast(false);

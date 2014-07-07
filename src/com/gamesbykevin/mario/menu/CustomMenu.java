@@ -30,7 +30,7 @@ public final class CustomMenu extends Menu implements IElement
      */
     public enum OptionKey 
     {
-        Sound, FullScreen, Mode, Difficulty, Lives 
+        Sound, FullScreen, Mode, Lives 
     }
     
     /**
@@ -154,7 +154,8 @@ public final class CustomMenu extends Menu implements IElement
             {
                 //determine the current selection for sound
                 final Toggle tmp = Toggle.values()[getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)];
-                
+
+                //the first index is off, even though the menu says on
                 final boolean enabled = (tmp == Toggle.Off);
                 
                 //set the audio enabled/disabled depending on setting

@@ -300,7 +300,7 @@ public abstract class Enemy extends Character implements Disposable, IElement
                             }
                             
                             //mark as jumping
-                            hero.setJump(true);
+                            hero.startJump();
                             
                             //make hero bounce off enemy
                             if (hero.getVelocityY() > 0)
@@ -309,12 +309,8 @@ public abstract class Enemy extends Character implements Disposable, IElement
                                 hero.setVelocityY(-hero.getVelocityY());
                             }
                             
-                            //only bullet bill can't be hurt
-                            if (getType() != Enemies.Type.BulletBill)
-                            {
-                                //mark enemy as dead?
-                                markHurt();
-                            }
+                            //mark enemy as dead?
+                            markHurt();
                         }
                         else
                         {

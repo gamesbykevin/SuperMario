@@ -10,23 +10,23 @@
     <!-- MENU COFIGURATION SETUP BELOW -->
     <layer id="Initial" next="Credits">
         <transition></transition>
-        <force>false</force>
+        <force>true</force>
         <pause>false</pause>
         <duration>3000</duration>
-        <image>resources/images/menu/background.jpg</image>
+        <image>resources/images/menu/title.gif</image>
     </layer>
     <layer id="Credits" next="MainTitle">
         <transition>SCROLL_VERTICAL_NORTH</transition>
         <force>false</force>
         <pause>false</pause>
         <duration>5000</duration>
-        <image>resources/images/menu/credits.gif</image>
+        <image>resources/images/menu/credit.gif</image>
     </layer>
     <layer id="MainTitle">
         <transition>SCROLL_HORIZONTAL_WEST_REPEAT</transition>
         <force>false</force>
         <pause>true</pause>
-        <duration>10000</duration>
+        <duration>15000</duration>
         <image>resources/images/menu/background.jpg</image>
         <optionContainerRatio>0.90</optionContainerRatio>
         <title>Mario Bros</title>
@@ -48,13 +48,6 @@
         <title>Options</title>
         <backgroundMusicLocation></backgroundMusicLocation>
         <optionSoundLocation>resources/audio/menu/sound/selection.wav</optionSoundLocation>
-        <options name="Difficulty: " id="Difficulty">
-            <option>Easy</option>
-            <option>Medium</option>
-            <option>Hard</option>
-            <option>Harder</option>
-            <option>Hardest</option>
-        </options>
         <options name="Starting Lives: " id="Lives">
             <option>5</option>
             <option>10</option>
@@ -67,26 +60,47 @@
         </options>
         <options name="Go Back" next="MainTitle" id="MainTitle"></options>
     </layer>
-    <layer id="Controls" next="MainTitle">
+    <layer id="Controls" next="Controls2">
         <transition></transition>
         <force>false</force>
         <pause>true</pause>
         <duration></duration>
-        <image>resources/images/menu/background.jpg</image>
+        <image>resources/images/menu/controls1.gif</image>
+    </layer>
+    <layer id="Controls2" next="MainTitle">
+        <transition></transition>
+        <force>false</force>
+        <pause>true</pause>
+        <duration></duration>
+        <image>resources/images/menu/controls2.gif</image>
     </layer>
     <layer id="Instructions" next="Instructions2">
         <transition></transition>
         <force>false</force>
         <pause>true</pause>
         <duration></duration>
-        <image>resources/images/menu/background.jpg</image>
+        <image>resources/images/menu/instructions1.gif</image>
     </layer>
-    <layer id="Instructions2" next="MainTitle">
+    <layer id="Instructions2" next="Instructions3">
         <transition></transition>
         <force>false</force>
         <pause>true</pause>
         <duration></duration>
-        <image>resources/images/menu/background.jpg</image>
+        <image>resources/images/menu/instructions2.gif</image>
+    </layer>
+    <layer id="Instructions3" next="Instructions4">
+        <transition></transition>
+        <force>false</force>
+        <pause>true</pause>
+        <duration></duration>
+        <image>resources/images/menu/instructions3.gif</image>
+    </layer>
+    <layer id="Instructions4" next="MainTitle">
+        <transition></transition>
+        <force>false</force>
+        <pause>true</pause>
+        <duration></duration>
+        <image>resources/images/menu/instructions4.gif</image>
     </layer>
     <layer id="GameStart">
     </layer>

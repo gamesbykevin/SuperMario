@@ -51,6 +51,12 @@ public final class Manager implements IManager
      */
     public Manager(final Engine engine) throws Exception
     {
+        //determine if sound is enabled
+        final boolean enabled = (Toggle.values()[engine.getMenu().getOptionSelectionIndex(LayerKey.OptionsInGame, OptionKey.Sound)] == Toggle.Off);
+
+        //set the audio depending on menu setting
+        engine.getResources().setAudioEnabled(enabled);
+        
         //set the game window where game play will occur
         setWindow(engine.getMain().getScreen());
 
