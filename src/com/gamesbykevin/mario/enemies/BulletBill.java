@@ -38,7 +38,7 @@ public final class BulletBill extends Enemy
         //set defaults
         setWeaknessProjectile(false);
         setDamageCollision(false);
-        setWeaknessStomp(false);
+        setWeaknessStomp(true);
         setProjectileLimit(1);
         setDefyGravity(true);
         setFaceEast(false);
@@ -63,7 +63,32 @@ public final class BulletBill extends Enemy
     @Override
     protected void checkSideCollision(final Hero hero)
     {
-        //this enemy won't hurt the hero
+        //this enemy won't hurt the hero but don't allow side collision
+        if (hero.hasVelocityX())
+        {
+            if (hero.getVelocityX() > 0)
+            {
+                if (hero.getX() + hero.getWidth() < getX() + (getWidth() / 2))
+                {
+                    //place on left side
+                    hero.setX(getX() - hero.getWidth());
+                    
+                    //stop moving
+                    hero.resetVelocityX();
+                }
+            }
+            else
+            {
+                if (hero.getX() > getX() + (getWidth() / 2))
+                {
+                    //place on right side
+                    hero.setX(getX() + getWidth());
+                    
+                    //stop moving
+                    hero.resetVelocityX();
+                }
+            }
+        }
     }
     
     @Override

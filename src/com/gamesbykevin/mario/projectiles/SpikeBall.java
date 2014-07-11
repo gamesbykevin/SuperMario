@@ -12,7 +12,7 @@ public final class SpikeBall extends Projectile
     private static final int PROJECTILE_HEIGHT = 14;
     
     //the speed to move
-    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2);
+    private static final double DEFAULT_VELOCITY_X = (Character.DEFAULT_SPEED_WALK * 2.75);
     private static final double DEFAULT_VELOCITY_Y = 0.5;
             
     //the direction/speed which to move

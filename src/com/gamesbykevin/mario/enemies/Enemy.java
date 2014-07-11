@@ -265,8 +265,8 @@ public abstract class Enemy extends Character implements Disposable, IElement
         //get the hero
         final Hero hero = engine.getManager().getMario();
         
-        //if the enemy has collision with the hero
-        if (hasCollision(hero))
+        //if the enemy has collision with the hero and the hero isn't dead
+        if (hasCollision(hero) && !hero.isDead())
         {
             if (hero.isInvincible())
             {

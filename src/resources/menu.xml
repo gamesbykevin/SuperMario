@@ -12,12 +12,12 @@
         <transition></transition>
         <force>true</force>
         <pause>false</pause>
-        <duration>3000</duration>
+        <duration>2500</duration>
         <image>resources/images/menu/title.gif</image>
     </layer>
     <layer id="Credits" next="MainTitle">
         <transition>SCROLL_VERTICAL_NORTH</transition>
-        <force>false</force>
+        <force>true</force>
         <pause>false</pause>
         <duration>5000</duration>
         <image>resources/images/menu/credit.gif</image>
